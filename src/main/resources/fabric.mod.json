@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "genyo",
+  "version": "${version}",
+  "name": "Genyo",
+  "description": "This is very genyo genyo genyo genyo genyo.",
+  "authors": [
+    "wuritzBlackMan",
+    "Barnika18192021SusPerson"
+  ],
+  "contact": {
+    "repo": "https://github.com/MeteorDevelopment/meteor-addon-template"
+  },
+  "icon": "assets/template/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "meteor": [
+      "com.genyo.addon.GenyoAddon"
+    ]
+  },
+  "mixins": [
+    "genyo.mixins.json"
+  ],
+  "custom": {
+    "meteor-client:color": "0,242,255"
+  },
+  "depends": {
+    "java": ">=21",
+    "minecraft": ["${mc_version}"],
+    "meteor-client": "*"
+  }
+}
