@@ -3,7 +3,8 @@
   "package": "com.genyo.addon.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "ExampleMixin"
+    "ExampleMixin",
+    "HudRendererAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
