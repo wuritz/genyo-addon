@@ -1,6 +1,8 @@
 package com.genyo.addon.hud;
 
 import com.genyo.addon.GenyoAddon;
+import com.genyo.addon.mixin.HudRendererAccessor;
+import com.genyo.addon.utils.HudUtils;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.hud.HudElement;
 import meteordevelopment.meteorclient.systems.hud.HudElementInfo;
@@ -94,7 +96,7 @@ public class PvPNeccessaryHud extends HudElement {
 
     private void calculateSize() {
         int offset = items.get().size();
-        setSize(21 * getScale() * offset, 17 * getScale());
+        setSize(21 * getScale() * offset, 17 * getScale() + 20);
     }
 
     @Override
@@ -115,7 +117,8 @@ public class PvPNeccessaryHud extends HudElement {
                 int scaleOffset = (int) (getScale() * 10);
                 int offset = i+1 != 1 ? i * 50 * scaleOffset / (20 - margin.get()) : 0;
 
-                renderer.post(() -> render(renderer, itemStack, x + offset, y));
+                //renderer.post(() -> render(renderer, itemStack, x + offset, y));
+                ((HudRendererAccessor) renderer).getHudRenderer().post(() -> render(renderer, itemStack, x + offset, y));
             }
         }
 
@@ -131,6 +134,12 @@ public class PvPNeccessaryHud extends HudElement {
         String countOverride = null;
         boolean resetToZero = false;
 
+        countOverride = String.valueOf(itemStack.getCount());
+
+        if (itemStack.getCount() == 1) {
+            countOverride = "1";
+        }
+
         if (itemStack.isEmpty()) {
             if (noneMode.get() == NoneMode.ShowCount)
                 countOverride = "0";
@@ -139,7 +148,8 @@ public class PvPNeccessaryHud extends HudElement {
             resetToZero = true;
         }
 
-        renderer.item(itemStack, x, y, getScale(), true, countOverride);
+        //renderer.item(itemStack, x, y, getScale(), true, countOverride);
+        HudUtils.drawItem(renderer.drawContext, itemStack, x, y, getScale(), countOverride);
 
         if (resetToZero)
             itemStack.setCount(0);

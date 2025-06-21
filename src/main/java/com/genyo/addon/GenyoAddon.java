@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 public class GenyoAddon extends MeteorAddon {
     public static final Logger LOG = LogUtils.getLogger();
     public static final Category CATEGORY = new Category("Example");
-    public static final HudGroup HUD_GROUP = new HudGroup("Example");
+    public static final HudGroup HUD_GROUP = new HudGroup("Genyo");
 
     @Override
     public void onInitialize() {
