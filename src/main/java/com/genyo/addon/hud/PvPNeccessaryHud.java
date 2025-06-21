@@ -1,7 +1,6 @@
 package com.genyo.addon.hud;
 
 import com.genyo.addon.GenyoAddon;
-import com.genyo.addon.mixin.HudRendererAccessor;
 import com.genyo.addon.utils.HudUtils;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.hud.HudElement;
@@ -117,8 +116,8 @@ public class PvPNeccessaryHud extends HudElement {
                 int scaleOffset = (int) (getScale() * 10);
                 int offset = i+1 != 1 ? i * 50 * scaleOffset / (20 - margin.get()) : 0;
 
-                //renderer.post(() -> render(renderer, itemStack, x + offset, y));
-                ((HudRendererAccessor) renderer).getHudRenderer().post(() -> render(renderer, itemStack, x + offset, y));
+                renderer.post(() -> render(renderer, itemStack, x + offset, y));
+                //((HudRendererAccessor) renderer).getHudRenderer().post(() -> render(renderer, itemStack, x + offset, y));
             }
         }
 
