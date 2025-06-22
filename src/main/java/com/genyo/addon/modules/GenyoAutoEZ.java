@@ -77,8 +77,6 @@ public class GenyoAutoEZ extends Module {
     private float renderHealth;
     private float renderPing;
 
-    private final Map<AbstractClientPlayerEntity, Integer> tog = new HashMap<>();
-
     @Override
     public void onActivate() {
         super.onActivate();

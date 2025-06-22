@@ -9,9 +9,9 @@
     "Barnika18ASDASDASDBLACKMAN"
   ],
   "contact": {
-    "repo": "https://www.youtube.com/"
+    "repo": "https://github.com/wuritz/genyo-addon"
   },
-  "icon": "assets/template/icon.png",
+  "icon": "assets/genyo/icon.png",
   "environment": "client",
   "entrypoints": {
     "meteor": [
