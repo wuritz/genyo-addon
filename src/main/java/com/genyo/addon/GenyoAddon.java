@@ -1,10 +1,14 @@
 package com.genyo.addon;
 
+import com.genyo.addon.gui.EnemiesTab;
 import com.genyo.addon.hud.PvPNeccessaryHud;
 import com.genyo.addon.modules.GenyoAutoEZ;
+import com.genyo.addon.systems.enemies.Enemies;
 import com.mojang.logging.LogUtils;
 import meteordevelopment.meteorclient.addons.GithubRepo;
 import meteordevelopment.meteorclient.addons.MeteorAddon;
+import meteordevelopment.meteorclient.gui.tabs.Tabs;
+import meteordevelopment.meteorclient.systems.Systems;
 import meteordevelopment.meteorclient.systems.hud.Hud;
 import meteordevelopment.meteorclient.systems.hud.HudGroup;
 import meteordevelopment.meteorclient.systems.modules.Category;
@@ -20,7 +24,11 @@ public class GenyoAddon extends MeteorAddon {
     public void onInitialize() {
         LOG.info("Genyo fasz indul genyo");
 
+        Systems.add(new Enemies());
+
         Modules.get().add(new GenyoAutoEZ());
+
+        Tabs.add(new EnemiesTab());
 
         // HUD
         Hud.get().register(PvPNeccessaryHud.INFO);

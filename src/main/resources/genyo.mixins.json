@@ -3,7 +3,9 @@
   "package": "com.genyo.addon.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "HudRendererAccessor"
+    "HudRendererAccessor",
+    "PlayerUtilsMixin",
+    "FriendsInjector"
   ],
   "injectors": {
     "defaultRequire": 1
