@@ -7,6 +7,7 @@ import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.friends.Friends;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
+import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.orbit.EventPriority;
 import net.minecraft.client.network.AbstractClientPlayerEntity;
@@ -76,8 +77,6 @@ public class GenyoAutoEZ extends Module {
     private String renderName = null;
     private float renderHealth;
     private float renderPing;
-
-    private final Map<AbstractClientPlayerEntity, Integer> tog = new HashMap<>();
 
     @Override
     public void onActivate() {
