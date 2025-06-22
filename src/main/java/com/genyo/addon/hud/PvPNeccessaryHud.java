@@ -2,6 +2,7 @@ package com.genyo.addon.hud;
 
 import com.genyo.addon.GenyoAddon;
 import com.genyo.addon.utils.HudUtils;
+import com.genyo.addon.utils.InventoryUtils;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.hud.HudElement;
 import meteordevelopment.meteorclient.systems.hud.HudElementInfo;
@@ -32,10 +33,10 @@ public class PvPNeccessaryHud extends HudElement {
         .build()
     );
 
-    private final Setting<NoneMode> noneMode = sgGeneral.add(new EnumSetting.Builder<NoneMode>()
-        .name("none-mode")
-        .description("How to render the item when you don't have the specified item in your inventory.")
-        .defaultValue(NoneMode.ShowCount)
+    private final Setting<SettingColor> textColor = sgGeneral.add(new ColorSetting.Builder()
+        .name("text-color")
+        .description("Brasil")
+        .defaultValue(new SettingColor(255, 255, 255, 255))
         .build()
     );
 
@@ -95,7 +96,7 @@ public class PvPNeccessaryHud extends HudElement {
 
     private void calculateSize() {
         int offset = items.get().size();
-        setSize(21 * getScale() * offset, 17 * getScale() + 20);
+        setSize(23 * getScale() * offset, 17 * getScale() + 20);
     }
 
     @Override
@@ -103,52 +104,63 @@ public class PvPNeccessaryHud extends HudElement {
         calculateSize();
         int itemsLength = items.get().size();
 
-        if (noneMode.get() == NoneMode.HideItem) {
-            if (isInEditor()) {
-                renderer.line(x, y, x + getWidth(), y + getHeight(), Color.GRAY);
-                renderer.line(x, y + getHeight(), x + getWidth(), y, Color.GRAY);
-            }
-        } else {
-            for  (int i = 0; i < itemsLength; i++) {
-                Item item = items.get().get(i);
-                ItemStack itemStack = new ItemStack(item, InvUtils.find(item).count());
+        for  (int i = 0; i < itemsLength; i++) {
+            Item item = items.get().get(i);
 
-                int scaleOffset = (int) (getScale() * 10);
-                int offset = i+1 != 1 ? i * 50 * scaleOffset / (20 - margin.get()) : 0;
+            ItemStack itemStack = new ItemStack(item, InventoryUtils.find(item).count());
 
-                renderer.post(() -> render(renderer, itemStack, x + offset, y));
-                //((HudRendererAccessor) renderer).getHudRenderer().post(() -> render(renderer, itemStack, x + offset, y));
+            int scaleOffset = (int) (getScale() * 10);
+            int intScale = (int) (getScale());
+            int offset = i+1 != 1 ? i * 50 * scaleOffset / (20 - margin.get()) : 0;
+
+            int textXOffset = 6 * intScale;
+            int textYOffset = 17 * intScale;
+
+            if (itemStack.getCount() > 100) {
+                textXOffset -= 6 * intScale;
+            } else if (itemStack.getCount() > 10) {
+                textXOffset -= 2 * intScale;
             }
+
+            int finalTextXOffset = textXOffset;
+            renderer.post(() -> {
+                render(renderer, itemStack, x + offset, y);
+                renderText(renderer, itemStack, x + offset + finalTextXOffset, y + textYOffset);
+            });
         }
 
         if (background.get()) renderer.quad(x, y, getWidth(), getHeight(), backgroundColor.get());
     }
 
     private void render(HudRenderer renderer, ItemStack itemStack, int x, int y) {
-        if (noneMode.get() == NoneMode.HideItem) {
-            renderer.item(itemStack, x, y, getScale(), true);
-            return;
-        }
-
-        String countOverride = null;
         boolean resetToZero = false;
 
-        countOverride = String.valueOf(itemStack.getCount());
-
-        if (itemStack.getCount() == 1) {
-            countOverride = "1";
-        }
-
         if (itemStack.isEmpty()) {
-            if (noneMode.get() == NoneMode.ShowCount)
-                countOverride = "0";
-
             itemStack.setCount(1);
             resetToZero = true;
         }
 
-        //renderer.item(itemStack, x, y, getScale(), true, countOverride);
-        HudUtils.drawItem(renderer.drawContext, itemStack, x, y, getScale(), countOverride);
+        HudUtils.drawItem(renderer.drawContext, itemStack, x, y, getScale());
+
+        if (resetToZero)
+            itemStack.setCount(0);
+    }
+
+    private void renderText(HudRenderer renderer, ItemStack itemStack, int x, int y) {
+        String count = String.valueOf(itemStack.getCount());
+
+        if (itemStack.getCount() == 1) {
+            count = "1";
+        }
+
+        boolean resetToZero = false;
+
+        if (itemStack.isEmpty()) {
+            itemStack.setCount(1);
+            resetToZero = true;
+        }
+
+        renderer.text(count, x, y, textColor.get(), true, getScale() / 2);
 
         if (resetToZero)
             itemStack.setCount(0);
@@ -156,21 +168,6 @@ public class PvPNeccessaryHud extends HudElement {
 
     private float getScale() {
         return customScale.get() ? scale.get().floatValue() : scale.getDefaultValue().floatValue();
-    }
-
-    public enum NoneMode {
-        HideItem,
-        HideCount,
-        ShowCount;
-
-        @Override
-        public String toString() {
-            return switch (this) {
-                case HideItem -> "Hide Item";
-                case HideCount -> "Hide Count";
-                case ShowCount -> "Show Count";
-            };
-        }
     }
 
 }
