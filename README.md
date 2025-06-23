@@ -10,4 +10,4 @@ written for Meteor 1.21.4
 
 ## License
 
-I have a Big Table in my living room.
+I love kiwi. 
