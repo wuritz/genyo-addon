@@ -15,7 +15,6 @@ public class PlayerUtilsMixin {
     @Inject(at = @At("TAIL"), method = "getPlayerColor*", cancellable = true)
     private static void injectGetPlayerColor(PlayerEntity entity, Color defaultColor, CallbackInfoReturnable<Color> cir) {
         if (Enemies.get().isEnemy(entity)) {
-            //cir.setReturnValue(new Color(245, 133, 125, 255));
             cir.setReturnValue(Enemies.get().getEnemyColor());
         }
     }

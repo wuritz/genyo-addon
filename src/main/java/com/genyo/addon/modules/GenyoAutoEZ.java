@@ -4,14 +4,10 @@ import com.genyo.addon.GenyoAddon;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
-import meteordevelopment.meteorclient.systems.friends.Friends;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
-import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 import meteordevelopment.orbit.EventHandler;
 import meteordevelopment.orbit.EventPriority;
-import net.minecraft.client.network.AbstractClientPlayerEntity;
-import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.EntityStatusS2CPacket;
@@ -46,7 +42,7 @@ public class GenyoAutoEZ extends Module {
 
     private final Setting<Boolean> pop = sgGeneral.add(new BoolSetting.Builder()
         .name("Pop")
-        .description("Should we send a message when enemy pops a totem")
+        .description("nyugi ez nem csinál semmit, csak dísznek van XD")
         .defaultValue(true)
         .build()
     );
@@ -61,22 +57,15 @@ public class GenyoAutoEZ extends Module {
     private final Setting<List<String>> popMessages = sgGeneral.add(new StringListSetting.Builder()
         .name("Pop Messages")
         .description("Messages to send when popping an enemy")
-        .defaultValue(List.of("ez pop <NAME>", "pop <NAME>", "i love kiwi pop <NAME>"))
+        .defaultValue(List.of("ez pop <NAME> <COUNT>", "pop <NAME> <COUNT>", "i love kiwi pop <NAME> <COUNT>"))
         .build()
     );
 
     private final Random r = new Random();
     private int lastPop;
     private final List<Message> messageQueue = new LinkedList<>();
-    private HashMap<PlayerEntity, Integer> taggedPlayers = new HashMap<PlayerEntity, Integer>();
+    private final HashMap<PlayerEntity, Integer> taggedPlayers = new HashMap<>();
     private int timer = 0;
-
-
-    private AbstractClientPlayerEntity target;
-
-    private String renderName = null;
-    private float renderHealth;
-    private float renderPing;
 
     @Override
     public void onActivate() {
@@ -94,38 +83,8 @@ public class GenyoAutoEZ extends Module {
                 timer = 0;
 
                 if (msg.kill) messageQueue.clear();
-                else messageQueue.remove(0);
+                else messageQueue.removeFirst();
             }
-        }
-    }
-
-    private void updateTarget() {
-        target = null;
-        if (mc.world == null) {return;}
-
-        AbstractClientPlayerEntity closest = null;
-        double distance = Double.MAX_VALUE;
-
-        for (AbstractClientPlayerEntity player : mc.world.getPlayers()) {
-            if (player == mc.player) {continue;}
-            if (Friends.get().isFriend(player)) {continue;}
-
-            double d = mc.player.distanceTo(player);
-
-            if (d < distance) {
-                closest = player;
-                distance = d;
-            }
-        }
-
-        target = closest;
-
-        if (target != null) {
-            renderName = target.getName().getString();
-            renderHealth = target.getHealth() + target.getAbsorptionAmount();
-
-            PlayerListEntry playerListEntry = mc.getNetworkHandler().getPlayerListEntry(target.getUuid());
-            renderPing = playerListEntry == null ? -1 : playerListEntry.getLatency();
         }
     }
 
@@ -135,17 +94,16 @@ public class GenyoAutoEZ extends Module {
             // Pop
             if (packet.getStatus() == 35) {
                 Entity entity = packet.getEntity(mc.world);
-                if (pop.get() && mc.player != null && mc.world != null && entity instanceof PlayerEntity playerEntity) {
-                    if (entity != mc.player && !Friends.get().isFriend((PlayerEntity) entity) &&
-                        mc.player.getPos().distanceTo(entity.getPos()) <= range.get()) {
+                if (mc.player != null && mc.world != null && entity instanceof PlayerEntity playerEntity) {
+                    if (entity != mc.player && mc.player.getPos().distanceTo(entity.getPos()) <= range.get()) {
 
                         if (trackPlayers.get() && taggedPlayers.containsKey(playerEntity)) {
-                            int count =  taggedPlayers.get(entity) + 1;
+                            int count =  taggedPlayers.get(playerEntity) + 1;
 
                             taggedPlayers.replace(playerEntity, count);
-                            sendPopMessage(entity.getName().getString(), count);
+                            sendPopMessage(playerEntity.getName().getString(), count);
                         } else {
-                            sendPopMessage(entity.getName().getString(), 0);
+                            sendPopMessage(playerEntity.getName().getString(), 0);
                             taggedPlayers.put(playerEntity, 1);
                         }
                     }
@@ -156,15 +114,18 @@ public class GenyoAutoEZ extends Module {
 
     private void sendPopMessage(String name, int count) {
         if (!popMessages.get().isEmpty()) {
-            int num = r.nextInt(0, popMessages.get().size() - 1);
+            int num = r.nextInt(0, popMessages.get().size());
             if (num == lastPop) {
                 num = num < popMessages.get().size() - 1 ? num + 1 : 0;
             }
             lastPop = num;
             String messageString = popMessages.get().get(num).replace("<NAME>", name);
+            String countString = String.valueOf(count);
 
             if (count > 0) {
-                messageString += " +" + count;
+                messageString = messageString.replace("<COUNT>", "+" + countString);
+            } else {
+                messageString = messageString.replace("<COUNT>", "+1");
             }
 
             Message message = new Message(messageString, false);
