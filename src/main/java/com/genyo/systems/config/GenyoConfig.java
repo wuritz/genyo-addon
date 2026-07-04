@@ -14,12 +14,22 @@ public class GenyoConfig extends System<GenyoConfig> {
     private final SettingGroup sgSounds = settings.createGroup("Sounds");
     private final SettingGroup sgVisual = settings.createGroup("Visual");
 
+    public boolean visibleDiscord = false;
+
     // General
 
     public final Setting<TextPosition> textPosition = sgGeneral.add(new EnumSetting.Builder<TextPosition>()
         .name("text-position")
         .description("Position of the Title Screen text")
         .defaultValue(TextPosition.Top)
+        .build()
+    );
+
+    public final Setting<Boolean> genyoDiscord = sgGeneral.add(new BoolSetting.Builder()
+        .name("Force Genyo Discord")
+        .description("You can't turn off Genyo Discord if this is turned on.")
+        .defaultValue(true)
+        .visible(this::forceDiscordVisible)
         .build()
     );
 
@@ -32,8 +42,6 @@ public class GenyoConfig extends System<GenyoConfig> {
         .min(10).defaultValue(100).max(100)
         .build()
     );
-
-    // In sgSounds group, add these three:
 
     public final Setting<Boolean> guiSounds = sgSounds.add(new BoolSetting.Builder()
         .name("gui-sounds")
@@ -106,6 +114,7 @@ public class GenyoConfig extends System<GenyoConfig> {
 
         tag.putString("version", Genyo.VERSION.toString());
         tag.put("settings", settings.toTag());
+        if (genyoDiscord.isVisible() || visibleDiscord) tag.putBoolean("forceDiscord", genyoDiscord.get());
 
         return tag;
     }
@@ -113,8 +122,21 @@ public class GenyoConfig extends System<GenyoConfig> {
     @Override
     public GenyoConfig fromTag(NbtCompound tag) {
         if (tag.contains("settings")) tag.getCompound("settings").ifPresent(settings::fromTag);
+        if (tag.contains("forceDiscord")) tag.getBoolean("forceDiscord").ifPresent(value -> {
+            visibleDiscord = true;
+        });
 
         return this;
+    }
+
+    public void makeDiscordVisible() {
+        visibleDiscord = true;
+        genyoDiscord.reset();
+        genyoDiscord.set(false);
+    }
+
+    private boolean forceDiscordVisible() {
+        return visibleDiscord;
     }
 
     public enum TextPosition {

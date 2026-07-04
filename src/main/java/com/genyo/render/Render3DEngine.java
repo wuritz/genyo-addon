@@ -1,10 +1,8 @@
 package com.genyo.render;
 
 
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.genyo.Genyo;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
-import meteordevelopment.meteorclient.renderer.ShapeMode;
-import meteordevelopment.meteorclient.systems.hud.Hud;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.MinecraftClient;
@@ -22,6 +20,7 @@ import org.lwjgl.opengl.GL11;
 import java.util.ArrayList;
 import java.util.List;
 
+import static meteordevelopment.meteorclient.MeteorClient.EVENT_BUS;
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 public class Render3DEngine {
