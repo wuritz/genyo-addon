@@ -134,6 +134,10 @@ public class Genyo extends MeteorAddon {
 
     private void initModules(Modules modules) {
         modules.add(new GenyoAutoEZ());
+        modules.add(new GenyoAutoPortal());
+        modules.add(new GenyoMineESP());
+        modules.add(new GenyoNuker());
+        modules.add(new GenyoNoSwing());
         modules.add(new GenyoSurround());
         modules.add(new GenyoWelcome());
         modules.add(new GenyoSkinBlink());

@@ -63,13 +63,6 @@ public class GenyoSelfTrap extends PlacerModule {
         .build()
     );
 
-    private final Setting<Boolean> buggy = sgGeneral.add(new BoolSetting.Builder()
-        .name("Buggy Placing")
-        .description("not a bug, its a genyo feature")
-        .defaultValue(timing.get() == Timing.SEQUENTIAL)
-        .visible(() -> timing.get() == Timing.SEQUENTIAL)
-        .build()
-    );
 
     private final Setting<Boolean> prePlaceExplosion = sgGeneral.add(new BoolSetting.Builder()
         .name("Pre Place Explosions")
@@ -255,16 +248,20 @@ public class GenyoSelfTrap extends PlacerModule {
         if (placements.isEmpty()) return;
 
         if (support.get()) {
+            List<BlockPos> supportBlocks = new ArrayList<>();
             for (BlockPos block : new ArrayList<>(placements))
             {
-                if (block.getY() > mc.player.getBlockY() + 1.0) {
-                    continue;
-                }
-                Direction direction = mc.player.getHorizontalFacing();
-                if (direction == null) {
-                    placements.add(block.down());
+                if (isAirPlace(block) && mc.world.getBlockState(block).isReplaceable())
+                {
+                    BlockPos below = block.down();
+                    if (!placements.contains(below) && !supportBlocks.contains(below)
+                        && mc.world.getBlockState(below).isReplaceable())
+                    {
+                        supportBlocks.add(below);
+                    }
                 }
             }
+            placements.addAll(0, supportBlocks);
         }
         placements.sort(Comparator.comparingInt(Vec3i::getY));
         while (blocksPlaced < shiftTicks.get()) {
@@ -396,19 +393,12 @@ public class GenyoSelfTrap extends PlacerModule {
     }
     private void placeBlock(BlockPos pos, int slot)
     {
-        if (!buggy.get()) {
-            Managers.INTERACT.placeBlock(pos, slot, strictDirection.get(), false, true, (state, angles) ->
-            {
-                if (rotate.get() && state) {
-                    Managers.ROTATION.setRotationSilent(angles[0], angles[1]);
-                }
-            });
-        } else {
-            if (InvUtils.findInHotbar(Items.OBSIDIAN).slot() == -1) return;
-
-            Managers.INVENTORY.setSlot(slot);
-            BlockUtils.place(pos, InvUtils.findInHotbar(Items.OBSIDIAN), rotate.get(), 0, true);
-        }
+        Managers.INTERACT.placeBlock(pos, slot, strictDirection.get(), false, true, (state, angles) ->
+        {
+            if (rotate.get() && state) {
+                Managers.ROTATION.setRotationSilent(angles[0], angles[1]);
+            }
+        });
         packets.put(pos, System.currentTimeMillis());
         blocksPlaced++;
     }
@@ -598,7 +588,14 @@ public class GenyoSelfTrap extends PlacerModule {
         fadeList.entrySet().removeIf(e ->
             e.getValue().getFactor() == 0.0);
     }
-
+    private boolean isAirPlace(BlockPos blockPos)
+    {
+        for (Direction dir : Direction.values())
+        {
+            if (!mc.world.getBlockState(blockPos.offset(dir)).isReplaceable()) return false;
+        }
+        return true;
+    }
     public boolean isPlacing()
     {
         return !placements.isEmpty();

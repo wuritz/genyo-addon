@@ -28,6 +28,10 @@ repositories {
         name = "ferra13671-maven"
         url = "https://ferra13671.github.io/maven/"
     }
+    maven {
+        name = "rfresh2-maven"
+        url = "https://maven.2b2t.vc/releases"
+    }
 }
 
 dependencies {
@@ -36,6 +40,7 @@ dependencies {
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
     modImplementation fabricApi.module("fabric-registry-sync-v0", "0.139.5+1.21.11")
+    include(modImplementation("com.github.rfresh2:baritone-fabric:1.21.11-20260119.015941-3"))
 
     // Meteor
     modImplementation "meteordevelopment:meteor-client:${project.minecraft_version}-SNAPSHOT"
