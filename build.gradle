@@ -46,17 +46,16 @@ dependencies {
     modImplementation "meteordevelopment:meteor-client:${project.minecraft_version}-SNAPSHOT"
 
     // SnakeYaml
-    implementation 'org.yaml:snakeyaml:2.2'
-    include 'org.yaml:snakeyaml:2.2'
+    implementation "org.yaml:snakeyaml:${project.snakeyaml_version}"
+    include "org.yaml:snakeyaml:${project.snakeyaml_version}"
 
-    implementation "com.ferra13671:discord-ipc:1.2"
-    include 'com.ferra13671:discord-ipc:1.2'
+    // Discord
+    implementation "com.ferra13671:discord-ipc:${project.discordipc_version}"
+    include "com.ferra13671:discord-ipc:${project.discordipc_version}"
 
     // Jackson
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
-    include 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
-
-
+    implementation "com.fasterxml.jackson.core:jackson-databind:${project.jackson_version}"
+    include "com.fasterxml.jackson.core:jackson-databind:${project.jackson_version}"
 }
 
 tasks {

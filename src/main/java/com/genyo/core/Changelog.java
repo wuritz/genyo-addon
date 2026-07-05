@@ -19,14 +19,15 @@ import static meteordevelopment.meteorclient.MeteorClient.mc;
 
 public class Changelog {
 
-    private static String latestVersion = null;
-    private static String updateString = "";
+    private volatile String latestVersion = null;
+    private String updateString = "";
+    private boolean updateAvailable = false;
 
-    private Changelog() {
+    public Changelog() {
 
     }
 
-    private static void init() {
+    private void init() {
         MeteorExecutor.execute(() -> {
             // Update latest version a
             String url = "https://api.github.com/repos/wuritz/genyo-addon/releases/latest";
@@ -44,8 +45,11 @@ public class Changelog {
                     ObjectMapper mapper = new ObjectMapper();
                     JsonNode json = mapper.readTree(response.body());
 
-                    String tagName = json.get("tag_name").asText();
-                    latestVersion = tagName;
+                    latestVersion = json.get("tag_name").asText();
+
+                    if (!Genyo.VERSION.toString().equals(latestVersion) && latestVersion != null) {
+                        updateAvailable = true;
+                    }
                 }
             } catch (IOException | InterruptedException e) {
                 Genyo.LOG.error(e.getMessage());
@@ -53,7 +57,7 @@ public class Changelog {
         });
     }
 
-    public static void render(DrawContext context) {
+    public void render(DrawContext context) {
         if (latestVersion == null) init();
 
         int x = 3;
@@ -63,13 +67,13 @@ public class Changelog {
         y += mc.textRenderer.fontHeight + 2;
 
         // Is there a new update available?
-        if (!Genyo.VERSION.toString().equals(latestVersion) && latestVersion != null) {
+        if (updateAvailable) {
             updateString = "New update is available";
             context.drawTextWithShadow(mc.textRenderer, updateString, x, y, Color.ORANGE.getRGB());
         }
     }
 
-    public static boolean onClicked(double mouseX, double mouseY) {
+    public boolean onClicked(double mouseX, double mouseY) {
         if (updateString == "") return false;
 
         int y = GenyoConfig.get().textPosition.get() == GenyoConfig.TextPosition.Center ? (mc.currentScreen.height / 2) - mc.textRenderer.fontHeight : 4
