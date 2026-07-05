@@ -2,6 +2,7 @@ package com.genyo.systems.modules.combat;
 
 
 import com.genyo.Genyo;
+import com.genyo.systems.modules.GenyoModule;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.render.Render2DEvent;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
@@ -9,7 +10,6 @@ import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.renderer.ShapeMode;
 import meteordevelopment.meteorclient.renderer.text.TextRenderer;
 import meteordevelopment.meteorclient.settings.*;
-import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.render.NametagUtils;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
@@ -27,18 +27,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class GenyoMineESP extends Module {
+public class MineESP extends GenyoModule {
 
     public enum RenderMode {
         Scale, Fill, Liquid
     }
 
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
-    private final SettingGroup sgColors = settings.createGroup("Colors");
+    private final SettingGroup sgRender = settings.createGroup("Render");
 
     private final Setting<Double> radius = sgGeneral.add(new DoubleSetting.Builder()
         .name("radius")
-        .description("Milyen távolságban mutassa a bányászott blokkokat.")
+        .description("At what distance should mined blocks be displayed?.")
         .defaultValue(30)
         .min(1)
         .sliderMax(100)
@@ -47,63 +47,65 @@ public class GenyoMineESP extends Module {
 
     private final Setting<Boolean> syncDoubleMine = sgGeneral.add(new BoolSetting.Builder()
         .name("sync-double-mine")
-        .description("Próbálja meg kitalálni és szinkronizálni a második bányászott blokkot (Heurisztikus).")
+        .description("Try to guess and synchronize the second mined block.")
         .defaultValue(true)
         .build()
     );
 
     private final Setting<RenderMode> renderMode = sgGeneral.add(new EnumSetting.Builder<RenderMode>()
         .name("render-mode")
-        .description("Hogyan jelenjen meg a bányászás animációja.")
+        .description("How the mining animation should appear.")
         .defaultValue(RenderMode.Liquid)
         .build()
     );
 
     private final Setting<Boolean> customFont = sgGeneral.add(new BoolSetting.Builder()
         .name("custom-font")
-        .description("Meteor egyedi betűtípusának használata.")
+        .description("Using Meteor's unique typeface.")
         .defaultValue(true)
         .build()
     );
 
-    private final Setting<SettingColor> rebreakSideColor = sgColors.add(new ColorSetting.Builder()
+    // Render
+
+    private final Setting<SettingColor> rebreakSideColor = sgRender.add(new ColorSetting.Builder()
         .name("rebreak-side-color")
-        .description("A doboz színe, ha Rebreak történik.")
+        .description("The color of the box if a rebreak occurs.")
         .defaultValue(new SettingColor(200, 50, 255, 100))
         .build()
     );
 
-    private final Setting<SettingColor> rebreakLineColor = sgColors.add(new ColorSetting.Builder()
+    private final Setting<SettingColor> rebreakLineColor = sgRender.add(new ColorSetting.Builder()
         .name("rebreak-line-color")
         .defaultValue(new SettingColor(200, 50, 255, 255))
         .build()
     );
 
-    private final Setting<SettingColor> textColor = sgColors.add(new ColorSetting.Builder()
+    private final Setting<SettingColor> textColor = sgRender.add(new ColorSetting.Builder()
         .name("text-color")
         .defaultValue(new SettingColor(255, 255, 255, 255))
         .build()
     );
 
-    private final Setting<SettingColor> sideColorStart = sgColors.add(new ColorSetting.Builder()
+    private final Setting<SettingColor> sideColorStart = sgRender.add(new ColorSetting.Builder()
         .name("side-color-start")
         .defaultValue(new SettingColor(50, 255, 50, 70))
         .build()
     );
 
-    private final Setting<SettingColor> sideColorEnd = sgColors.add(new ColorSetting.Builder()
+    private final Setting<SettingColor> sideColorEnd = sgRender.add(new ColorSetting.Builder()
         .name("side-color-end")
         .defaultValue(new SettingColor(255, 50, 50, 70))
         .build()
     );
 
-    private final Setting<SettingColor> lineColorStart = sgColors.add(new ColorSetting.Builder()
+    private final Setting<SettingColor> lineColorStart = sgRender.add(new ColorSetting.Builder()
         .name("line-color-start")
         .defaultValue(new SettingColor(0, 255, 0, 255))
         .build()
     );
 
-    private final Setting<SettingColor> lineColorEnd = sgColors.add(new ColorSetting.Builder()
+    private final Setting<SettingColor> lineColorEnd = sgRender.add(new ColorSetting.Builder()
         .name("line-color-end")
         .defaultValue(new SettingColor(255, 0, 0, 255))
         .build()
@@ -114,8 +116,8 @@ public class GenyoMineESP extends Module {
     private final Map<Integer, BlockPos> lastBrokenBlocks = new ConcurrentHashMap<>();
     private final Set<Integer> swingingEntities = ConcurrentHashMap.newKeySet();
 
-    public GenyoMineESP() {
-        super(Genyo.COMBAT, "mine-esp", "Fejlett ESP Liquid effekttel, Double Mine és Rebreak szinkronnal.");
+    public MineESP() {
+        super(Genyo.COMBAT, "mine-esp", "Featuring ESP Liquid effect, with Double Mine and Rebreak synchronization.");
     }
 
     @Override

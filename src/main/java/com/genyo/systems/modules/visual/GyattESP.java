@@ -14,13 +14,10 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.Vec3d;
 
-import java.util.ArrayList;
-import java.util.List;
+public class GyattESP extends GenyoModule {
 
-public class PenisESP extends GenyoModule {
-
-    public PenisESP() {
-        super(Genyo.VISUAL, "PenisESP", "faszfasz fasz fasz fasz fasz fsaz fasz");
+    public GyattESP() {
+        super(Genyo.VISUAL, "GyattESP", "ya");
     }
 
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -32,30 +29,21 @@ public class PenisESP extends GenyoModule {
         .build()
     );
 
-    private final Setting<Float> ballSize = sgGeneral.add(new FloatSetting.Builder()
-        .name("Ball Size")
-        .description("ya")
+    private final Setting<Float> cheekSize = sgGeneral.add(new FloatSetting.Builder()
+        .name("Cheek Size")
+        .description("radius of each sphere")
         .min(0.1f)
-        .defaultValue(0.3f)
-        .max(3.0f)
+        .defaultValue(0.6f)
+        .max(2.0f)
         .build()
     );
 
-    private final Setting<Float> tubeRadius = sgGeneral.add(new FloatSetting.Builder()
-        .name("Tube Radius")
-        .description("thickness of the tube")
-        .min(0.02f)
-        .defaultValue(0.1f)
-        .max(1.0f)
-        .build()
-    );
-
-    private final Setting<Float> penisSize = sgGeneral.add(new FloatSetting.Builder()
-        .name("Penis Size")
-        .description("ya")
-        .min(0.1f)
-        .defaultValue(1.5f)
-        .max(3.0f)
+    private final Setting<Float> gap = sgGeneral.add(new FloatSetting.Builder()
+        .name("Gap")
+        .description("distance between the two centers - set below cheek size for overlap")
+        .min(0.0f)
+        .defaultValue(0.5f)
+        .max(2.0f)
         .build()
     );
 
@@ -63,8 +51,8 @@ public class PenisESP extends GenyoModule {
         .name("Friend Size")
         .description("fren")
         .min(0.1f)
-        .defaultValue(1.5f)
-        .max(3.0f)
+        .defaultValue(0.6f)
+        .max(2.0f)
         .build()
     );
 
@@ -72,8 +60,8 @@ public class PenisESP extends GenyoModule {
         .name("Enemy Size")
         .description("emeny >:(")
         .min(0.1f)
-        .defaultValue(0.5f)
-        .max(3.0f)
+        .defaultValue(0.3f)
+        .max(2.0f)
         .build()
     );
 
@@ -87,17 +75,10 @@ public class PenisESP extends GenyoModule {
         .build()
     );
 
-    private final Setting<SettingColor> penisColor = sgGeneral.add(new ColorSetting.Builder()
-        .name("Penis Color")
+    private final Setting<SettingColor> cheekColor = sgGeneral.add(new ColorSetting.Builder()
+        .name("Color")
         .description("wtf")
         .defaultValue(new Color(231, 180, 122, 255))
-        .build()
-    );
-
-    private final Setting<SettingColor> headColor = sgGeneral.add(new ColorSetting.Builder()
-        .name("Head Color")
-        .description("wtf 2.0")
-        .defaultValue(new Color(240, 50, 180, 255))
         .build()
     );
 
@@ -108,23 +89,23 @@ public class PenisESP extends GenyoModule {
 
             double size = Friends.get().isFriend(player)
                 ? friendSize.get()
-                : (player != mc.player ? enemySize.get() : penisSize.get());
+                : (player != mc.player ? enemySize.get() : cheekSize.get());
 
             Vec3d base = getInterpolatedPos(player, event.tickDelta);
 
             Vec3d forwardDir = Vec3d.fromPolar(0, player.getYaw());
             Vec3d rightDir = Vec3d.fromPolar(0, player.getYaw() + 90);
-            Vec3d upDir = new Vec3d(0, 1, 0);
 
-            Vec3d waist = base.add(0, player.getHeight() / 2.4, 0);
-            Vec3d origin = waist.add(forwardDir.multiply(0.1));
+            Vec3d hip = base.add(0, player.getHeight() / 2.4, 0)
+                .add(forwardDir.multiply(-0.15));
 
-            Vec3d left = origin.add(rightDir.multiply(-ballSize.get()));
-            Vec3d right = origin.add(rightDir.multiply(ballSize.get()));
+            double offset = (size + gap.get()) / 2.0;
 
-            drawSphere(ballSize.get(), gradation.get(), left, penisColor.get());
-            drawSphere(ballSize.get(), gradation.get(), right, penisColor.get());
-            drawTubeShape(origin, forwardDir, rightDir, upDir, size);
+            Vec3d left = hip.add(rightDir.multiply(-offset));
+            Vec3d right = hip.add(rightDir.multiply(offset));
+
+            drawSphere(size, gradation.get(), left, cheekColor.get());
+            drawSphere(size, gradation.get(), right, cheekColor.get());
         }
     }
 
@@ -133,34 +114,6 @@ public class PenisESP extends GenyoModule {
         double y = entity.lastY + ((entity.getY() - entity.lastY) * tickDelta);
         double z = entity.lastZ + ((entity.getZ() - entity.lastZ) * tickDelta);
         return new Vec3d(x, y, z);
-    }
-
-    private void drawTubeShape(Vec3d origin, Vec3d forwardDir, Vec3d rightDir, Vec3d upDir, double size) {
-        Vec3d end = origin.add(forwardDir.multiply(size));
-
-        drawTube(origin, end, tubeRadius.get(), gradation.get(), rightDir, upDir, penisColor.get());
-
-        drawSphere(tubeRadius.get(), gradation.get(), origin, penisColor.get());
-        drawSphere(tubeRadius.get(), gradation.get(), end, headColor.get());
-    }
-
-    private void drawTube(Vec3d start, Vec3d end, double radius, int segments, Vec3d rightDir, Vec3d upDir, Color color) {
-        List<Vec3d> startRing = new ArrayList<>();
-        List<Vec3d> endRing = new ArrayList<>();
-
-        for (int i = 0; i < segments; i++) {
-            double theta = (2 * Math.PI * i) / segments;
-            Vec3d offset = rightDir.multiply(radius * Math.cos(theta)).add(upDir.multiply(radius * Math.sin(theta)));
-            startRing.add(start.add(offset));
-            endRing.add(end.add(offset));
-        }
-
-        for (int i = 0; i < segments; i++) {
-            int next = (i + 1) % segments;
-            Render3DEngine.drawLine(startRing.get(i), startRing.get(next), color); // start ring
-            Render3DEngine.drawLine(endRing.get(i), endRing.get(next), color);     // end ring
-            Render3DEngine.drawLine(startRing.get(i), endRing.get(i), color);       // side rung
-        }
     }
 
     private void drawSphere(double radius, int gradation, Vec3d pos, Color color) {

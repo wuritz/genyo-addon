@@ -18,7 +18,6 @@ import com.genyo.systems.modules.world.*;
 import com.mojang.logging.LogUtils;
 import meteordevelopment.meteorclient.addons.GithubRepo;
 import meteordevelopment.meteorclient.addons.MeteorAddon;
-import meteordevelopment.meteorclient.commands.Command;
 import meteordevelopment.meteorclient.commands.Commands;
 import meteordevelopment.meteorclient.gui.tabs.Tabs;
 import meteordevelopment.meteorclient.systems.Systems;
@@ -126,8 +125,8 @@ public class Genyo extends MeteorAddon {
 
     private void initModules(Modules modules) {
         modules.add(new GenyoAutoEZ());
-        modules.add(new GenyoAutoPortal());
-        modules.add(new GenyoMineESP());
+        modules.add(new AutoPortal());
+        modules.add(new MineESP());
         modules.add(new GenyoNuker());
         modules.add(new GenyoNoSwing());
         modules.add(new GenyoSurround());
@@ -179,6 +178,7 @@ public class Genyo extends MeteorAddon {
         modules.add(new AutoRename());
         modules.add(new FriendProtector());
         modules.add(new Parkinsons());
+        modules.add(new GyattESP());
     }
 
     private void initHUD(Hud hud) {
