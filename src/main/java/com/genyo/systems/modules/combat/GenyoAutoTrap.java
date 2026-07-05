@@ -212,18 +212,20 @@ public class GenyoAutoTrap extends PlacerModule {
         }
         if (supportConfig.get())
         {
+            List<BlockPos> supportBlocks = new ArrayList<>();
             for (BlockPos block : new ArrayList<>(placements))
             {
-                if (block.getY() > targetBlockPos.getY())
+                if (isAirPlace(block) && mc.world.getBlockState(block).isReplaceable())
                 {
-                    continue;
-                }
-                Direction direction = Managers.INTERACT.getInteractDirectionInternal(block, strictDirection.get());
-                if (direction == null)
-                {
-                    placements.add(block.down());
+                    BlockPos below = block.down();
+                    if (!placements.contains(below) && !supportBlocks.contains(below)
+                        && mc.world.getBlockState(below).isReplaceable())
+                    {
+                        supportBlocks.add(below);
+                    }
                 }
             }
+            placements.addAll(0, supportBlocks);
         }
         placements.sort(Comparator.comparingInt(Vec3i::getY));
         while (blocksPlaced < shiftTicksConfig.get())
@@ -471,7 +473,14 @@ public class GenyoAutoTrap extends PlacerModule {
         fadeList.entrySet().removeIf(e ->
             e.getValue().getFactor() == 0.0);
     }
-
+    private boolean isAirPlace(BlockPos blockPos)
+    {
+        for (Direction dir : Direction.values())
+        {
+            if (!mc.world.getBlockState(blockPos.offset(dir)).isReplaceable()) return false;
+        }
+        return true;
+    }
     public boolean isPlacing()
     {
         return !placements.isEmpty();
