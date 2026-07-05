@@ -10,6 +10,8 @@ import net.minecraft.util.math.Vec3d;
 
 import java.util.Arrays;
 
+import static meteordevelopment.meteorclient.MeteorClient.mc;
+
 public class AntiCheatManager {
 
     private SetbackData lastSetback;
@@ -48,15 +50,24 @@ public class AntiCheatManager {
 
     private void grimCheck()
     {
+        boolean detected = true;
         for (int i = 0; i < 4; ++i)
         {
             if (transactions[i] != -i)
             {
+                detected = false;
                 break;
             }
         }
-        isGrim = true;
-        GenyoChatUtils.sendInfo("Server is running GrimAC");
+
+        // Only announce once, and only run the chat/HUD call on the main
+        // thread since this handler runs on the Netty IO thread and
+        // GenyoChatUtils ends up touching render code (ChatHud -> GL calls).
+        if (detected && !isGrim)
+        {
+            isGrim = true;
+            mc.execute(() -> GenyoChatUtils.sendInfo("Server is running GrimAC"));
+        }
     }
 
     public boolean isGrim()
