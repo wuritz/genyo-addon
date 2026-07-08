@@ -15,11 +15,15 @@ import com.genyo.systems.enemies.EnemiesTab;
 import com.genyo.managers.Managers;
 import com.genyo.systems.enemies.Enemies;
 import com.genyo.systems.modules.world.*;
+import com.genyo.systems.settings.FloatSetting;
+import com.genyo.systems.settings.playerlist.PlayerListGroupSetting;
 import com.mojang.logging.LogUtils;
 import meteordevelopment.meteorclient.addons.GithubRepo;
 import meteordevelopment.meteorclient.addons.MeteorAddon;
 import meteordevelopment.meteorclient.commands.Commands;
 import meteordevelopment.meteorclient.gui.tabs.Tabs;
+import meteordevelopment.meteorclient.gui.utils.SettingsWidgetFactory;
+import meteordevelopment.meteorclient.gui.widgets.input.WDoubleEdit;
 import meteordevelopment.meteorclient.systems.Systems;
 import meteordevelopment.meteorclient.systems.hud.Hud;
 import meteordevelopment.meteorclient.systems.hud.HudElementInfo;
@@ -76,6 +80,25 @@ public class Genyo extends MeteorAddon {
     @Override
     public void onInitialize() {
         LOG.info("Welcome to Genyo :D");
+
+        // Register custom factories for settings
+        SettingsWidgetFactory.registerCustomFactory(PlayerListGroupSetting.class, (theme) ->
+            (table, setting) -> PlayerListGroupSetting.fillTable(theme, table, (PlayerListGroupSetting) setting)
+        );
+        SettingsWidgetFactory.registerCustomFactory(FloatSetting.class, (theme) ->
+            (table, setting) -> {
+                FloatSetting floatSetting = (FloatSetting) setting;
+                WDoubleEdit edit = theme.doubleEdit(floatSetting.get(), floatSetting.min, floatSetting.max, floatSetting.sliderMin, floatSetting.sliderMax, floatSetting.decimalPlaces, floatSetting.noSlider);
+                table.add(edit).expandX();
+
+                Runnable action = () -> {
+                    if (!floatSetting.set((float) edit.get())) edit.set(floatSetting.get());
+                };
+
+                if (floatSetting.onSliderRelease) edit.actionOnRelease = action;
+                else edit.action = action;
+            }
+        );
 
         if (Modules.get().isActive(DiscordPresence.class)
             && GenyoConfig.get().genyoDiscord.get())
