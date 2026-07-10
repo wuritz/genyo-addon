@@ -135,6 +135,7 @@ public class Genyo extends MeteorAddon {
     private void initModules(Modules modules) {
         modules.add(new GenyoAutoEZ());
        // modules.add(new GenyoLogoutPoints());
+        modules.add(new GenyoLogoutSpots());
         modules.add(new GenyoNoMineAnimation());
         modules.add(new GenyoAutoPortal());
         modules.add(new GenyoMineESP());

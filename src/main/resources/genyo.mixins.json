@@ -4,6 +4,7 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "ClientPlayerInteractionManagerMixin",
+    "entity.player.MixinLivingEntityRenderer",
     "DefaultSettingsWidgetFactoryMixin",
     "FriendsInjector",
     "MixinConnectScreen",
