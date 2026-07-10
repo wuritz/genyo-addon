@@ -17,14 +17,11 @@ import meteordevelopment.orbit.EventHandler;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.packet.s2c.play.BlockBreakingProgressS2CPacket;
-import net.minecraft.network.packet.s2c.play.EntityAnimationS2CPacket;
 import net.minecraft.util.hit.BlockHitResult;
-import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import org.joml.Vector3d;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GenyoMineESP extends Module {
@@ -47,7 +44,7 @@ public class GenyoMineESP extends Module {
 
     private final Setting<Boolean> syncDoubleMine = sgGeneral.add(new BoolSetting.Builder()
         .name("sync-double-mine")
-        .description("Próbálja meg kitalálni és szinkronizálni a második bányászott blokkot (Heurisztikus).")
+        .description("Jelzi, ha ugyanaz a játékos egyszerre több blokkot is bányászik (szerver csomagok alapján).")
         .defaultValue(true)
         .build()
     );
@@ -56,6 +53,13 @@ public class GenyoMineESP extends Module {
         .name("render-mode")
         .description("Hogyan jelenjen meg a bányászás animációja.")
         .defaultValue(RenderMode.Liquid)
+        .build()
+    );
+
+    private final Setting<Boolean> showOwnMining = sgGeneral.add(new BoolSetting.Builder()
+        .name("show-own-mining")
+        .description("Az ESP a saját bányászásunkat is mutassa.")
+        .defaultValue(false)
         .build()
     );
 
@@ -76,6 +80,19 @@ public class GenyoMineESP extends Module {
     private final Setting<SettingColor> rebreakLineColor = sgColors.add(new ColorSetting.Builder()
         .name("rebreak-line-color")
         .defaultValue(new SettingColor(200, 50, 255, 255))
+        .build()
+    );
+
+    private final Setting<SettingColor> doubleMineSideColor = sgColors.add(new ColorSetting.Builder()
+        .name("double-mine-side-color")
+        .description("A doboz színe, ha a játékos egyszerre több blokkot bányászik.")
+        .defaultValue(new SettingColor(255, 165, 0, 100))
+        .build()
+    );
+
+    private final Setting<SettingColor> doubleMineLineColor = sgColors.add(new ColorSetting.Builder()
+        .name("double-mine-line-color")
+        .defaultValue(new SettingColor(255, 165, 0, 255))
         .build()
     );
 
@@ -110,30 +127,22 @@ public class GenyoMineESP extends Module {
     );
 
     private final Map<BlockPos, MineData> blocks = new ConcurrentHashMap<>();
-    private final Map<Integer, BlockPos> suspectedMines = new ConcurrentHashMap<>();
     private final Map<Integer, BlockPos> lastBrokenBlocks = new ConcurrentHashMap<>();
-    private final Set<Integer> swingingEntities = ConcurrentHashMap.newKeySet();
+    private BlockPos selfBreakingPos = null;
 
     public GenyoMineESP() {
-        super(Genyo.COMBAT, "mine-esp", "Fejlett ESP Liquid effekttel, Double Mine és Rebreak szinkronnal.");
+        super(Genyo.COMBAT, "genyo-mine-esp", "Fejlett ESP Liquid effekttel, Double Mine és Rebreak szinkronnal.");
     }
 
     @Override
     public void onDeactivate() {
         blocks.clear();
-        suspectedMines.clear();
         lastBrokenBlocks.clear();
-        swingingEntities.clear();
+        selfBreakingPos = null;
     }
 
     @EventHandler
     private void onReceivePacket(PacketEvent.Receive event) {
-        if (event.packet instanceof EntityAnimationS2CPacket animPacket) {
-            if (animPacket.getAnimationId() == 0 || animPacket.getAnimationId() == 3) {
-                swingingEntities.add(animPacket.getEntityId());
-            }
-        }
-
         if (event.packet instanceof BlockBreakingProgressS2CPacket packet) {
             BlockPos pos = packet.getPos();
             int stage = packet.getProgress();
@@ -157,23 +166,7 @@ public class GenyoMineESP extends Module {
 
     @EventHandler
     private void onTick(TickEvent.Pre event) {
-        if (syncDoubleMine.get()) {
-            for (int entityId : swingingEntities) {
-                Entity entity = mc.world.getEntityById(entityId);
-                if (entity instanceof PlayerEntity && entity != mc.player) {
-                    HitResult hit = entity.raycast(6.0, 1.0f, false);
-                    if (hit instanceof BlockHitResult blockHit) {
-                        BlockPos hitPos = blockHit.getBlockPos();
-                        if (!mc.world.getBlockState(hitPos).isAir()) {
-                            suspectedMines.put(entityId, hitPos);
-                        }
-                    }
-                }
-            }
-        }
-        swingingEntities.clear();
-
-        suspectedMines.entrySet().removeIf(entry -> mc.world.getBlockState(entry.getValue()).isAir());
+        updateOwnMining();
 
         blocks.entrySet().removeIf(entry -> {
             MineData data = entry.getValue();
@@ -183,6 +176,68 @@ public class GenyoMineESP extends Module {
             data.renderProgress += (target - data.renderProgress) * 0.15;
             return false;
         });
+
+        if (syncDoubleMine.get()) {
+            Map<Integer, Integer> activeCounts = new ConcurrentHashMap<>();
+            for (MineData data : blocks.values()) {
+                activeCounts.merge(data.entityId, 1, Integer::sum);
+            }
+            for (MineData data : blocks.values()) {
+                data.isDoubleMine = activeCounts.getOrDefault(data.entityId, 0) > 1;
+            }
+        } else {
+            for (MineData data : blocks.values()) {
+                data.isDoubleMine = false;
+            }
+        }
+    }
+
+    private void updateOwnMining() {
+        if (mc.player == null || mc.interactionManager == null || !showOwnMining.get()) {
+            if (selfBreakingPos != null) {
+                blocks.remove(selfBreakingPos);
+                selfBreakingPos = null;
+            }
+            return;
+        }
+
+        boolean breakingNow = mc.interactionManager.isBreakingBlock() && mc.crosshairTarget instanceof BlockHitResult;
+
+        if (!breakingNow) {
+            if (selfBreakingPos != null) {
+                // If the block wasn't actually mined (i.e. we aborted), remove it immediately
+                // instead of waiting for the timeout. A finished block is already air and gets
+                // cleaned up by the removeIf air-check right after this runs.
+                if (!mc.world.getBlockState(selfBreakingPos).isAir()) {
+                    blocks.remove(selfBreakingPos);
+                }
+                selfBreakingPos = null;
+            }
+            return;
+        }
+
+        BlockHitResult hit = (BlockHitResult) mc.crosshairTarget;
+        BlockPos pos = hit.getBlockPos();
+        int entityId = mc.player.getId();
+
+        int stage = mc.interactionManager.getBlockBreakingProgress();
+        if (stage < 0) {
+            stage = 0;
+        }
+
+        if (selfBreakingPos != null && !selfBreakingPos.equals(pos)) {
+            blocks.remove(selfBreakingPos);
+        }
+
+        MineData data = blocks.get(pos);
+        if (data == null) {
+            boolean isRebreak = pos.equals(lastBrokenBlocks.get(entityId));
+            blocks.put(pos, new MineData(pos, entityId, stage, isRebreak));
+        } else {
+            data.targetStage = stage;
+            data.timer = 0;
+        }
+        selfBreakingPos = pos;
     }
 
     @EventHandler
@@ -191,12 +246,6 @@ public class GenyoMineESP extends Module {
 
         for (MineData data : blocks.values()) {
             renderBox(event, data.pos, data);
-            if (syncDoubleMine.get()) {
-                BlockPos suspected = suspectedMines.get(data.entityId);
-                if (suspected != null && !suspected.equals(data.pos)) {
-                    renderBox(event, suspected, data);
-                }
-            }
         }
     }
 
@@ -206,20 +255,24 @@ public class GenyoMineESP extends Module {
 
         for (MineData data : blocks.values()) {
             renderText(event, data.pos, data);
-            if (syncDoubleMine.get()) {
-                BlockPos suspected = suspectedMines.get(data.entityId);
-                if (suspected != null && !suspected.equals(data.pos)) {
-                    renderText(event, suspected, data);
-                }
-            }
         }
     }
 
     private void renderBox(Render3DEvent event, BlockPos pos, MineData data) {
         if (mc.player.squaredDistanceTo(pos.toCenterPos()) > radius.get() * radius.get()) return;
 
-        Color currentSide = data.isRebreak ? rebreakSideColor.get() : lerpColor(sideColorStart.get(), sideColorEnd.get(), data.renderProgress);
-        Color currentLine = data.isRebreak ? rebreakLineColor.get() : lerpColor(lineColorStart.get(), lineColorEnd.get(), data.renderProgress);
+        Color currentSide;
+        Color currentLine;
+        if (data.isRebreak) {
+            currentSide = rebreakSideColor.get();
+            currentLine = rebreakLineColor.get();
+        } else if (data.isDoubleMine) {
+            currentSide = doubleMineSideColor.get();
+            currentLine = doubleMineLineColor.get();
+        } else {
+            currentSide = lerpColor(sideColorStart.get(), sideColorEnd.get(), data.renderProgress);
+            currentLine = lerpColor(lineColorStart.get(), lineColorEnd.get(), data.renderProgress);
+        }
 
         if (renderMode.get() == RenderMode.Liquid) {
             double time = System.currentTimeMillis() / 200.0;
@@ -261,13 +314,22 @@ public class GenyoMineESP extends Module {
         Vector3d pos2d = new Vector3d(pos3d);
 
         if (NametagUtils.to2D(pos2d, 1.5)) {
+            String tag = null;
+            Color tagColor = null;
+            if (data.isRebreak) {
+                tag = "Rebreak";
+                tagColor = rebreakLineColor.get();
+            } else if (data.isDoubleMine) {
+                tag = "Double Mine";
+                tagColor = doubleMineLineColor.get();
+            }
+
             if (customFont.get()) {
                 NametagUtils.begin(pos3d);
                 TextRenderer.get().begin(1.0, false, true);
                 TextRenderer.get().render(text, -TextRenderer.get().getWidth(text) / 2.0, 0, textColor.get(), true);
-                if (data.isRebreak) {
-                    String rb = "Rebreak";
-                    TextRenderer.get().render(rb, -TextRenderer.get().getWidth(rb) / 2.0, 12, rebreakLineColor.get(), true);
+                if (tag != null) {
+                    TextRenderer.get().render(tag, -TextRenderer.get().getWidth(tag) / 2.0, 12, tagColor, true);
                 }
                 TextRenderer.get().end();
                 NametagUtils.end();
@@ -276,10 +338,9 @@ public class GenyoMineESP extends Module {
                 int x = (int) (pos2d.x / scale) - (mc.textRenderer.getWidth(text) / 2);
                 int y = (int) (pos2d.y / scale);
                 event.drawContext.drawTextWithShadow(mc.textRenderer, text, x, y, textColor.get().getPacked());
-                if (data.isRebreak) {
-                    String rb = "Rebreak";
-                    int rbX = (int) (pos2d.x / scale) - (mc.textRenderer.getWidth(rb) / 2);
-                    event.drawContext.drawTextWithShadow(mc.textRenderer, rb, rbX, y + 10, rebreakLineColor.get().getPacked());
+                if (tag != null) {
+                    int tagX = (int) (pos2d.x / scale) - (mc.textRenderer.getWidth(tag) / 2);
+                    event.drawContext.drawTextWithShadow(mc.textRenderer, tag, tagX, y + 10, tagColor.getPacked());
                 }
             }
         }
@@ -300,6 +361,7 @@ public class GenyoMineESP extends Module {
         public double renderProgress;
         public int timer;
         public boolean isRebreak;
+        public boolean isDoubleMine;
 
         public MineData(BlockPos pos, int entityId, int stage, boolean isRebreak) {
             this.pos = pos;

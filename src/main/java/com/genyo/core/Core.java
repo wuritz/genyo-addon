@@ -54,19 +54,26 @@ public final class Core {
     @EventHandler
     public void onMessageReceive(ReceiveMessageEvent event) {
         String message = event.getMessage().getString().toLowerCase();
+        GenyoConfig cfg = GenyoConfig.get();
+        if (cfg == null) return;
 
         if (message.contains("genyo") && !message.startsWith("§")) {
-            Managers.SOUND.playSound(VINE);
+            if (cfg.vineSound.get()) {
+                Managers.SOUND.playSound(VINE, cfg.vineVolume.get());
+            }
         } else if (message.contains("verstappen")) {
-            Managers.SOUND.playSound(VERSTAPPEN);
-        } else if ((message.contains("nigga") || message.contains("nigger")) &&
-            (GenyoConfig.get().blackPerson.get()) && GenyoConfig.get() != null) {
+            if (cfg.verstappenSound.get()) {
+                Managers.SOUND.playSound(VERSTAPPEN, cfg.verstappenVolume.get());
+            }
+        } else if ((message.contains("nigga") || message.contains("nigger")) && cfg.blackPerson.get()) {
             if (soundTimer.passed(6000)) {
                 Managers.SOUND.playSound(BLACK, 10);
                 soundTimer.reset();
             }
         } else if (message.contains("kiwi")) {
-            Managers.SOUND.playSound(KIWI);
+            if (cfg.kiwiSound.get()) {
+                Managers.SOUND.playSound(KIWI, cfg.kiwiVolume.get());
+            }
         }
     }
 
@@ -75,7 +82,10 @@ public final class Core {
         if (!(event.entity instanceof PlayerEntity player)) return;
         if (!Enemies.get().isEnemy(player)) return;
 
-        Managers.SOUND.playSound(HAMBURGER);
+        GenyoConfig cfg = GenyoConfig.get();
+        if (cfg != null && cfg.hamburgerSound.get()) {
+            Managers.SOUND.playSound(HAMBURGER, cfg.hamburgerVolume.get());
+        }
     }
 
 }

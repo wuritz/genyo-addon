@@ -15,6 +15,7 @@ import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.renderer.ShapeMode;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Modules;
+import meteordevelopment.meteorclient.systems.modules.player.AirPlace;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
@@ -105,7 +106,14 @@ public class GenyoSelfTrap extends PlacerModule {
 
     private final Setting<Boolean> head = sgGeneral.add(new BoolSetting.Builder()
         .name("Cover Head")
-        .description("Doesn't work rn")
+        .description("Places a block above the player's head.")
+        .defaultValue(false)
+        .build()
+    );
+
+    private final Setting<Boolean> antiStep = sgGeneral.add(new BoolSetting.Builder()
+        .name("Prevent Step")
+        .description("Prevents the player from stepping out of the trap")
         .defaultValue(false)
         .build()
     );
@@ -487,10 +495,50 @@ public class GenyoSelfTrap extends PlacerModule {
             }
         }
 
-        /*if (AirPlaceModule.getInstance().isEnabled() && head.get())
+        if (head.get())
         {
-            surroundBlocks.add(mc.player.getBlockPos().up(2));
-        }*/
+            boolean supported = false;
+            final List<BlockPos> headBlocks = new ArrayList<>();
+            for (BlockPos pos : playerBlocks)
+            {
+                BlockPos headPos = pos.offset(Direction.UP, 2);
+                if (!mc.world.getBlockState(headPos).isReplaceable())
+                {
+                    supported = true;
+                }
+                headBlocks.add(headPos);
+                if (antiStep.get())
+                {
+                    BlockPos antiStepPos = pos.offset(Direction.UP, 3);
+                    headBlocks.add(antiStepPos);
+                }
+            }
+            if (!Modules.get().isActive(AirPlace.class))
+            {
+                BlockPos supportingPos = null;
+                double min = Double.MAX_VALUE;
+                for (BlockPos pos : surroundBlocks)
+                {
+                    BlockPos pos1 = pos.offset(Direction.UP, 2);
+                    if (!mc.world.getBlockState(pos1).isReplaceable())
+                    {
+                        supported = true;
+                        break;
+                    }
+                    double dist = mc.player.squaredDistanceTo(pos1.toCenterPos());
+                    if (dist < min)
+                    {
+                        supportingPos = pos1;
+                        min = dist;
+                    }
+                }
+                if (supportingPos != null && !supported)
+                {
+                    surroundBlocks.add(supportingPos);
+                }
+            }
+            surroundBlocks.addAll(headBlocks);
+        }
         return surroundBlocks;
     }
 

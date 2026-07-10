@@ -82,7 +82,7 @@ public class GenyoAutoPortal extends Module {
     );
 
     public GenyoAutoPortal() {
-        super(Genyo.MISC, "auto-portal", "Builds a Nether portal with Delay, Auto-Refill, and Hotbar Cleanup.");
+        super(Genyo.MISC, "genyo-auto-portal", "Builds a Nether portal with Delay, Auto-Refill, and Hotbar Cleanup.");
     }
 
     private final List<BlockPos> frameBlocks = new ArrayList<>();
