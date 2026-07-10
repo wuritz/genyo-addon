@@ -4,6 +4,7 @@ import com.genyo.events.TotemPopEvent;
 import com.genyo.events.UnderCombatEvent;
 import com.genyo.managers.Managers;
 import com.genyo.core.sound.SoundManager;
+import com.genyo.systems.config.GenyoConfig;
 import com.genyo.utils.GenyoChatUtils;
 import meteordevelopment.meteorclient.MeteorClient;
 import meteordevelopment.meteorclient.events.entity.player.AttackEntityEvent;
@@ -61,7 +62,10 @@ public class CombatManager {
                     "\n\nReason: " + Formatting.GREEN + "ewrhjfkjerkjfhrejkgkregr" + Formatting.GRAY +
                     "\nConclusion: " + Formatting.GREEN + "Skill issue. :(");
 
-                Managers.SOUND.playSound(SoundManager.SCREAM, 80);
+                GenyoConfig cfg = GenyoConfig.get();
+                if (cfg != null && cfg.screamSound.get()) {
+                    Managers.SOUND.playSound(SoundManager.SCREAM, cfg.screamVolume.get());
+                }
             }
         }
     }

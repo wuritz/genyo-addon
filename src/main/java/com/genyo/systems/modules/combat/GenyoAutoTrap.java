@@ -4,6 +4,7 @@ import com.genyo.Genyo;
 import com.genyo.events.network.PlayerTickEvent;
 import com.genyo.managers.Managers;
 import com.genyo.systems.modules.PlacerModule;
+import com.genyo.systems.modules.visual.GenyoLogoutSpots;
 import com.genyo.render.animation.Animation;
 import com.genyo.systems.settings.FloatSetting;
 import com.genyo.utils.math.GPositionUtils;
@@ -122,6 +123,13 @@ public class GenyoAutoTrap extends PlacerModule {
         .build()
     );
 
+    private final Setting<Boolean> useLogoutSpotsConfig = sgGeneral.add(new BoolSetting.Builder()
+        .name("Use Logout Spots")
+        .description("Falls back to trapping a frozen logout spot if no live target is found")
+        .defaultValue(true)
+        .build()
+    );
+
     // Render
 
     private final Setting<Boolean> renderConfig = sgRender.add(new BoolSetting.Builder()
@@ -182,16 +190,45 @@ public class GenyoAutoTrap extends PlacerModule {
             placements.clear();
             return;
         }
+
         PlayerEntity trapTarget = getTrapTarget();
-        if (trapTarget == null)
+        BlockPos targetBlockPos;
+
+        if (trapTarget != null)
+        {
+            targetBlockPos = GPositionUtils.getRoundedBlockPos(trapTarget.getX(), trapTarget.getY(), trapTarget.getZ());
+            surround = getSurround(targetBlockPos, trapTarget.getBoundingBox());
+        }
+        else if (useLogoutSpotsConfig.get())
+        {
+            GenyoLogoutSpots.Spot logout = getNearestLogoutSpot();
+            if (logout == null)
+            {
+                surround.clear();
+                placements.clear();
+                return;
+            }
+
+            double x = logout.state.x;
+            double y = logout.state.y;
+            double z = logout.state.z;
+            double halfWidth = logout.state.width / 2.0;
+
+            targetBlockPos = GPositionUtils.getRoundedBlockPos(x, y, z);
+            Box targetBox = new Box(
+                x - halfWidth, y, z - halfWidth,
+                x + halfWidth, y + logout.state.height, z + halfWidth
+            );
+
+            surround = getSurround(targetBlockPos, targetBox);
+        }
+        else
         {
             surround.clear();
             placements.clear();
             return;
         }
 
-        BlockPos targetBlockPos = GPositionUtils.getRoundedBlockPos(trapTarget.getX(), trapTarget.getY(), trapTarget.getZ());
-        surround = getSurround(targetBlockPos, trapTarget);
         if (surround.isEmpty())
         {
             return;
@@ -314,6 +351,43 @@ public class GenyoAutoTrap extends PlacerModule {
             .orElse(null);
     }
 
+    private GenyoLogoutSpots.Spot getNearestLogoutSpot()
+    {
+        if (!Modules.get().isActive(GenyoLogoutSpots.class))
+        {
+            return null;
+        }
+
+        GenyoLogoutSpots module = Modules.get().get(GenyoLogoutSpots.class);
+        List<GenyoLogoutSpots.Spot> spots = module.getSpots();
+        if (spots.isEmpty())
+        {
+            return null;
+        }
+
+        GenyoLogoutSpots.Spot best = null;
+        double bestDist = Double.MAX_VALUE;
+
+        for (GenyoLogoutSpots.Spot spot : spots)
+        {
+            if (Managers.SOCIAL.isFriend(spot.name))
+            {
+                continue;
+            }
+
+            double dist = mc.player.squaredDistanceTo(spot.state.x, spot.state.y, spot.state.z);
+            if (dist > MathUtil.squared(placeRangeConfig.get()) || dist > bestDist)
+            {
+                continue;
+            }
+
+            bestDist = dist;
+            best = spot;
+        }
+
+        return best;
+    }
+
     public void attackBlockingCrystals(List<BlockPos> posList)
     {
         for (BlockPos pos : posList)
@@ -360,8 +434,13 @@ public class GenyoAutoTrap extends PlacerModule {
 
     public List<BlockPos> getSurround(BlockPos playerPos, PlayerEntity player)
     {
+        return getSurround(playerPos, player.getBoundingBox());
+    }
+
+    public List<BlockPos> getSurround(BlockPos playerPos, Box box)
+    {
         List<BlockPos> surroundBlocks = new ArrayList<>();
-        List<BlockPos> playerBlocks = getPlayerBlocks(playerPos, player);
+        List<BlockPos> playerBlocks = getPlayerBlocks(playerPos, box);
         for (BlockPos pos : playerBlocks)
         {
             for (Direction dir : Direction.values())
@@ -429,10 +508,15 @@ public class GenyoAutoTrap extends PlacerModule {
 
     public List<BlockPos> getPlayerBlocks(BlockPos playerPos, PlayerEntity entity)
     {
+        return getPlayerBlocks(playerPos, entity.getBoundingBox());
+    }
+
+    public List<BlockPos> getPlayerBlocks(BlockPos playerPos, Box box)
+    {
         final List<BlockPos> playerBlocks = new ArrayList<>();
         if (extendConfig.get())
         {
-            playerBlocks.addAll(GPositionUtils.getAllInBox(entity.getBoundingBox(), playerPos));
+            playerBlocks.addAll(GPositionUtils.getAllInBox(box, playerPos));
         }
         else
         {

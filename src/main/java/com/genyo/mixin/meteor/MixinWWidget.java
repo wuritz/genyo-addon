@@ -28,7 +28,7 @@ public class MixinWWidget {
 
         if (mouseOver && !genyo_wasOver) {
             GenyoConfig cfg = GenyoConfig.get();
-            if (cfg != null && cfg.guiSounds.get()) {
+            if (cfg != null && cfg.hoverSoundEnabled.get()) {
                 float vol = cfg.hoverVolume.get() / 100f;
                 Managers.SOUND.playUISound(SoundManager.GUI_HOVER, vol, 1f);
             }
@@ -44,14 +44,18 @@ public class MixinWWidget {
         if (!mouseOver) return;
 
         GenyoConfig cfg = GenyoConfig.get();
-        if (cfg == null || !cfg.guiSounds.get()) return;
-
-        float vol = cfg.clickVolume.get() / 100f;
+        if (cfg == null) return;
 
         if (click.button() == 0) {
-            Managers.SOUND.playUISound(SoundManager.GUI_CLICK_LEFT, vol, 1f);
+            if (cfg.clickLeftSoundEnabled.get()) {
+                float vol = cfg.clickLeftVolume.get() / 100f;
+                Managers.SOUND.playUISound(SoundManager.GUI_CLICK_LEFT, vol, 1f);
+            }
         } else if (click.button() == 1) {
-            Managers.SOUND.playUISound(SoundManager.GUI_CLICK_RIGHT, vol, 1f);
+            if (cfg.clickRightSoundEnabled.get()) {
+                float vol = cfg.clickRightVolume.get() / 100f;
+                Managers.SOUND.playUISound(SoundManager.GUI_CLICK_RIGHT, vol, 1f);
+            }
         }
     }
 }

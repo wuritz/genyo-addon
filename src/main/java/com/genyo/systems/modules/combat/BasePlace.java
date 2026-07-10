@@ -3,6 +3,7 @@ package com.genyo.systems.modules.combat;
 import com.genyo.Genyo;
 import com.genyo.events.network.PlayerTickEvent;
 import com.genyo.managers.Managers;
+import com.genyo.mixin.accessor.AccessorCrystalAura;
 import com.genyo.render.animation.Animation;
 import com.genyo.systems.modules.PlacerModule;
 import com.genyo.systems.settings.FloatSetting;
@@ -126,7 +127,22 @@ public class BasePlace extends PlacerModule {
     @EventHandler
     public void onTick(PlayerTickEvent event)
     {
-        if (!Modules.get().isActive(GenyoAutoCrystal.class) || !Modules.get().isActive(CrystalAura.class) || Modules.get().get(GenyoAutoCrystal.class).isPlacing())
+        boolean genyoActive = Modules.get().isActive(GenyoAutoCrystal.class);
+        boolean caActive = Modules.get().isActive(CrystalAura.class);
+
+        // Neither aura running -> nothing for base-place to support
+        if (!genyoActive && !caActive)
+        {
+            return;
+        }
+
+        // Don't interfere while the active aura is itself mid-placement
+        if (genyoActive && Modules.get().get(GenyoAutoCrystal.class).isPlacing())
+        {
+            return;
+        }
+
+        if (caActive && ((AccessorCrystalAura) Modules.get().get(CrystalAura.class)).isPlacing())
         {
             return;
         }
@@ -216,7 +232,8 @@ public class BasePlace extends PlacerModule {
                 continue;
             }
 
-            if (!Modules.get().get(GenyoAutoCrystal.class).isCrystalHitboxClear(pos))
+            if (Modules.get().isActive(GenyoAutoCrystal.class)
+                && !Modules.get().get(GenyoAutoCrystal.class).isCrystalHitboxClear(pos))
             {
                 continue;
             }

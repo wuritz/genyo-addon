@@ -21,7 +21,7 @@ import net.minecraft.util.math.Direction;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AutoPortal extends GenyoModule {
+public class GenyoAutoPortal extends GenyoModule {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
     private final SettingGroup sgRender = settings.createGroup("Render");
 
@@ -81,7 +81,7 @@ public class AutoPortal extends GenyoModule {
         .build()
     );
 
-    public AutoPortal() {
+    public GenyoAutoPortal() {
         super(Genyo.MISC, "auto-portal", "Builds a Nether portal with Delay, Auto-Refill, and Hotbar Cleanup.");
     }
 
