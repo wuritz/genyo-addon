@@ -14,22 +14,12 @@ public class GenyoConfig extends System<GenyoConfig> {
     private final SettingGroup sgSounds = settings.createGroup("Sounds");
     private final SettingGroup sgVisual = settings.createGroup("Visual");
 
-    public boolean visibleDiscord = false;
-
     // General
 
     public final Setting<TextPosition> textPosition = sgGeneral.add(new EnumSetting.Builder<TextPosition>()
         .name("text-position")
         .description("Position of the Title Screen text")
         .defaultValue(TextPosition.Top)
-        .build()
-    );
-
-    public final Setting<Boolean> genyoDiscord = sgGeneral.add(new BoolSetting.Builder()
-        .name("Force Genyo Discord")
-        .description("You can't turn off Genyo Discord if this is turned on.")
-        .defaultValue(true)
-        .visible(this::forceDiscordVisible)
         .build()
     );
 
@@ -43,9 +33,9 @@ public class GenyoConfig extends System<GenyoConfig> {
         .build()
     );
 
-    public final Setting<Boolean> guiSounds = sgSounds.add(new BoolSetting.Builder()
-        .name("gui-sounds")
-        .description("Play sounds when hovering and clicking in Meteor's GUI.")
+    public final Setting<Boolean> hoverSoundEnabled = sgSounds.add(new BoolSetting.Builder()
+        .name("hover-sound")
+        .description("Play a sound when hovering over a module in Meteor's GUI.")
         .defaultValue(true)
         .build()
     );
@@ -55,16 +45,39 @@ public class GenyoConfig extends System<GenyoConfig> {
         .description("Volume of the hover sound.")
         .min(1).defaultValue(60).max(100)
         .sliderRange(1, 100)
-        .visible(guiSounds::get)
+        .visible(hoverSoundEnabled::get)
         .build()
     );
 
-    public final Setting<Integer> clickVolume = sgSounds.add(new IntSetting.Builder()
-        .name("click-volume")
-        .description("Volume of left/right click sounds.")
+    public final Setting<Boolean> clickLeftSoundEnabled = sgSounds.add(new BoolSetting.Builder()
+        .name("click-left-sound")
+        .description("Play a sound when left-clicking a module in Meteor's GUI.")
+        .defaultValue(true)
+        .build()
+    );
+
+    public final Setting<Integer> clickLeftVolume = sgSounds.add(new IntSetting.Builder()
+        .name("click-left-volume")
+        .description("Volume of the left-click sound.")
         .min(1).defaultValue(80).max(100)
         .sliderRange(1, 100)
-        .visible(guiSounds::get)
+        .visible(clickLeftSoundEnabled::get)
+        .build()
+    );
+
+    public final Setting<Boolean> clickRightSoundEnabled = sgSounds.add(new BoolSetting.Builder()
+        .name("click-right-sound")
+        .description("Play a sound when right-clicking a module in Meteor's GUI.")
+        .defaultValue(true)
+        .build()
+    );
+
+    public final Setting<Integer> clickRightVolume = sgSounds.add(new IntSetting.Builder()
+        .name("click-right-volume")
+        .description("Volume of the right-click sound.")
+        .min(1).defaultValue(80).max(100)
+        .sliderRange(1, 100)
+        .visible(clickRightSoundEnabled::get)
         .build()
     );
 
@@ -91,6 +104,86 @@ public class GenyoConfig extends System<GenyoConfig> {
         .build()
     );
 
+    public final Setting<Boolean> vineSound = sgSounds.add(new BoolSetting.Builder()
+        .name("vine-sound")
+        .description("Play a sound when someone says 'genyo' in chat.")
+        .defaultValue(true)
+        .build()
+    );
+
+    public final Setting<Integer> vineVolume = sgSounds.add(new IntSetting.Builder()
+        .name("vine-volume")
+        .description("Volume of the vine sound.")
+        .min(1).defaultValue(100).max(100)
+        .sliderRange(1, 100)
+        .visible(vineSound::get)
+        .build()
+    );
+
+    public final Setting<Boolean> verstappenSound = sgSounds.add(new BoolSetting.Builder()
+        .name("verstappen-sound")
+        .description("Play a sound when someone says 'verstappen' in chat.")
+        .defaultValue(true)
+        .build()
+    );
+
+    public final Setting<Integer> verstappenVolume = sgSounds.add(new IntSetting.Builder()
+        .name("verstappen-volume")
+        .description("Volume of the verstappen sound.")
+        .min(1).defaultValue(100).max(100)
+        .sliderRange(1, 100)
+        .visible(verstappenSound::get)
+        .build()
+    );
+
+    public final Setting<Boolean> kiwiSound = sgSounds.add(new BoolSetting.Builder()
+        .name("kiwi-sound")
+        .description("Play a sound when someone says 'kiwi' in chat.")
+        .defaultValue(true)
+        .build()
+    );
+
+    public final Setting<Integer> kiwiVolume = sgSounds.add(new IntSetting.Builder()
+        .name("kiwi-volume")
+        .description("Volume of the kiwi sound.")
+        .min(1).defaultValue(100).max(100)
+        .sliderRange(1, 100)
+        .visible(kiwiSound::get)
+        .build()
+    );
+
+    public final Setting<Boolean> hamburgerSound = sgSounds.add(new BoolSetting.Builder()
+        .name("hamburger-sound")
+        .description("Play a sound when an enemy player renders in.")
+        .defaultValue(true)
+        .build()
+    );
+
+    public final Setting<Integer> hamburgerVolume = sgSounds.add(new IntSetting.Builder()
+        .name("hamburger-volume")
+        .description("Volume of the hamburger sound.")
+        .min(1).defaultValue(100).max(100)
+        .sliderRange(1, 100)
+        .visible(hamburgerSound::get)
+        .build()
+    );
+
+    public final Setting<Boolean> screamSound = sgSounds.add(new BoolSetting.Builder()
+        .name("scream-sound")
+        .description("Play a sound when you die.")
+        .defaultValue(true)
+        .build()
+    );
+
+    public final Setting<Integer> screamVolume = sgSounds.add(new IntSetting.Builder()
+        .name("scream-volume")
+        .description("Volume of the scream sound.")
+        .min(1).defaultValue(80).max(100)
+        .sliderRange(1, 100)
+        .visible(screamSound::get)
+        .build()
+    );
+
     // Visual
 
     public final Setting<Boolean> useGenyoSplashes = sgVisual.add(new BoolSetting.Builder()
@@ -114,7 +207,6 @@ public class GenyoConfig extends System<GenyoConfig> {
 
         tag.putString("version", Genyo.VERSION.toString());
         tag.put("settings", settings.toTag());
-        if (genyoDiscord.isVisible() || visibleDiscord) tag.putBoolean("forceDiscord", genyoDiscord.get());
 
         return tag;
     }
@@ -122,21 +214,8 @@ public class GenyoConfig extends System<GenyoConfig> {
     @Override
     public GenyoConfig fromTag(NbtCompound tag) {
         if (tag.contains("settings")) tag.getCompound("settings").ifPresent(settings::fromTag);
-        if (tag.contains("forceDiscord")) tag.getBoolean("forceDiscord").ifPresent(value -> {
-            visibleDiscord = true;
-        });
 
         return this;
-    }
-
-    public void makeDiscordVisible() {
-        visibleDiscord = true;
-        genyoDiscord.reset();
-        genyoDiscord.set(false);
-    }
-
-    private boolean forceDiscordVisible() {
-        return visibleDiscord;
     }
 
     public enum TextPosition {
