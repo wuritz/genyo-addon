@@ -12,6 +12,7 @@
     "PlayerUtilsMixin",
     "accessor.AccessorAnvilScreen",
     "accessor.AccessorBundlePacket",
+    "accessor.AccessorCrystalAura",
     "accessor.AccessorClientPlayerInteractionManager",
     "accessor.AccessorClientWorld",
     "accessor.AccessorGameOptions",
@@ -25,7 +26,8 @@
     "render.MixinEntityRenderer",
     "render.MixinRenderTickCounter",
     "render.MixinWorldRenderer",
-    "world.MixinClientWorld"
+    "world.MixinClientWorld",
+    "render.MixinWorldRendererBreaking"
   ],
   "injectors": {
     "defaultRequire": 1
