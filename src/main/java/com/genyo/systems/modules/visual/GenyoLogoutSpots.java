@@ -6,6 +6,7 @@ import com.genyo.render.PlayerWireframeRenderer;
 import com.genyo.render.RenderStateCache;
 import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.entity.player.PlayerSkinType;
+import meteordevelopment.meteorclient.events.render.Render2DEvent;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.systems.modules.Categories;
@@ -14,6 +15,7 @@ import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
 import meteordevelopment.orbit.EventHandler;
+import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
@@ -21,6 +23,7 @@ import net.minecraft.client.render.entity.state.PlayerEntityRenderState;
 import net.minecraft.client.render.entity.model.EntityModelLayers;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.dimension.DimensionType;
 
 import java.util.ArrayList;
@@ -34,7 +37,7 @@ public class GenyoLogoutSpots extends Module {
     private final Setting<SettingColor> lineColor = sgRender.add(new ColorSetting.Builder()
         .name("line-color")
         .description("Wireframe line color.")
-        .defaultValue(new SettingColor(255, 0, 255))
+        .defaultValue(new SettingColor(85, 220, 255))
         .build()
     );
 
@@ -48,7 +51,7 @@ public class GenyoLogoutSpots extends Module {
     private final Setting<Integer> sideOpacity = sgRender.add(new IntSetting.Builder()
         .name("side-opacity")
         .description("Opacity of the side face fill (0 = invisible, 255 = solid).")
-        .defaultValue(50)
+        .defaultValue(30)
         .min(0)
         .max(255)
         .sliderMin(0)
@@ -59,10 +62,25 @@ public class GenyoLogoutSpots extends Module {
     private final Setting<Double> lineThickness = sgRender.add(new DoubleSetting.Builder()
         .name("line-thickness")
         .description("Thickness of the wireframe lines, in blocks.")
-        .defaultValue(0.02)
+        .defaultValue(0.150)
         .min(0.005)
         .sliderMin(0.005)
         .sliderMax(0.15)
+        .build()
+    );
+
+    private final Setting<Boolean> showNames = sgRender.add(new BoolSetting.Builder()
+        .name("show-names")
+        .description("Renders the player's name above their logout spot.")
+        .defaultValue(true)
+        .build()
+    );
+
+    private final Setting<SettingColor> nameColor = sgRender.add(new ColorSetting.Builder()
+        .name("name-color")
+        .description("Color of the player name text.")
+        .defaultValue(new SettingColor(255, 255, 255))
+        .visible(showNames::get)
         .build()
     );
 
@@ -179,6 +197,29 @@ public class GenyoLogoutSpots extends Module {
 
         for (Spot spot : spots) {
             spot.render(event, line, sideWithOpacity, thickness);
+        }
+    }
+
+    @EventHandler
+    private void onRender2D(Render2DEvent event) {
+        if (!showNames.get() || spots.isEmpty()) return;
+
+        Color color = nameColor.get();
+
+        for (Spot spot : spots) {
+            // Head height roughly matches the frozen state's standing eye height
+            Vec3d worldPos = new Vec3d(spot.state.x, spot.state.y + spot.state.standingEyeHeight + 0.3, spot.state.z);
+
+            Vec3d screen = mc.gameRenderer.project(worldPos);
+            // project() returns NDC-like coords; z outside [0,1] roughly means behind/outside camera
+            if (screen.z < 0 || screen.z > 1) continue;
+
+            int x = (int) ((screen.x * 0.5 + 0.5) * mc.getWindow().getScaledWidth());
+            int y = (int) ((1.0 - (screen.y * 0.5 + 0.5)) * mc.getWindow().getScaledHeight());
+
+            DrawContext ctx = event.drawContext;
+            int textWidth = mc.textRenderer.getWidth(spot.name);
+            ctx.drawText(mc.textRenderer, spot.name, x - textWidth / 2, y, color.getPacked(), true);
         }
     }
 
