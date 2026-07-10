@@ -31,6 +31,7 @@ public class MineESP extends GenyoModule {
     }
 
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
+    private final SettingGroup sgColors = settings.createGroup("Colors");
     private final SettingGroup sgRender = settings.createGroup("Render");
 
     private final Setting<Double> radius = sgGeneral.add(new DoubleSetting.Builder()
