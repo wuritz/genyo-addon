@@ -11,6 +11,7 @@ import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.settings.*;
+import meteordevelopment.meteorclient.utils.render.color.Color;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.model.ModelPart;
@@ -34,6 +35,34 @@ public class GenyoLogoutSpots extends Module {
         .name("line-color")
         .description("Wireframe line color.")
         .defaultValue(new SettingColor(255, 0, 255))
+        .build()
+    );
+
+    private final Setting<SettingColor> sideColor = sgRender.add(new ColorSetting.Builder()
+        .name("side-color")
+        .description("Fill color for the wireframe's side faces.")
+        .defaultValue(new SettingColor(255, 0, 255))
+        .build()
+    );
+
+    private final Setting<Integer> sideOpacity = sgRender.add(new IntSetting.Builder()
+        .name("side-opacity")
+        .description("Opacity of the side face fill (0 = invisible, 255 = solid).")
+        .defaultValue(50)
+        .min(0)
+        .max(255)
+        .sliderMin(0)
+        .sliderMax(255)
+        .build()
+    );
+
+    private final Setting<Double> lineThickness = sgRender.add(new DoubleSetting.Builder()
+        .name("line-thickness")
+        .description("Thickness of the wireframe lines, in blocks.")
+        .defaultValue(0.02)
+        .min(0.005)
+        .sliderMin(0.005)
+        .sliderMax(0.15)
         .build()
     );
 
@@ -143,8 +172,13 @@ public class GenyoLogoutSpots extends Module {
 
     @EventHandler
     private void onRender3D(Render3DEvent event) {
+        SettingColor side = sideColor.get();
+        Color sideWithOpacity = new SettingColor(side.r, side.g, side.b, sideOpacity.get());
+        Color line = lineColor.get();
+        double thickness = lineThickness.get();
+
         for (Spot spot : spots) {
-            spot.render(event, lineColor.get());
+            spot.render(event, line, sideWithOpacity, thickness);
         }
     }
 
@@ -179,8 +213,9 @@ public class GenyoLogoutSpots extends Module {
             this.model.setAngles(state);
         }
 
-        public void render(Render3DEvent event, meteordevelopment.meteorclient.utils.render.color.Color color) {
-            PlayerWireframeRenderer.render(event, modelPart, state.x, state.y, state.z, state.bodyYaw, color);
+        public void render(Render3DEvent event, Color lineColor, Color sideColor, double lineThickness) {
+            PlayerWireframeRenderer.render(event, modelPart, state.x, state.y, state.z, state.bodyYaw,
+                lineColor, sideColor, lineThickness);
         }
     }
 }
