@@ -6,9 +6,9 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.network.packet.c2s.play.HandSwingC2SPacket;
 
-public class GenyoNoSwing extends Module {
+public class NoSwing extends Module {
 
-    public GenyoNoSwing() {
+    public NoSwing() {
         super(Genyo.VISUAL, "no-swing", "NoSwing u know use your brain mr.");
     }
 

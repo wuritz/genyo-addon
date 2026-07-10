@@ -1,12 +1,12 @@
-package com.genyo.systems.modules.misc;
+package com.genyo.systems.modules.world;
 
 
 import com.genyo.Genyo;
+import com.genyo.systems.modules.GenyoModule;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.renderer.ShapeMode;
 import meteordevelopment.meteorclient.settings.*;
-import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.FindItemResult;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
@@ -21,7 +21,7 @@ import net.minecraft.util.math.Direction;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GenyoAutoPortal extends Module {
+public class GenyoAutoPortal extends GenyoModule {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
     private final SettingGroup sgRender = settings.createGroup("Render");
 
@@ -82,7 +82,7 @@ public class GenyoAutoPortal extends Module {
     );
 
     public GenyoAutoPortal() {
-        super(Genyo.MISC, "genyo-auto-portal", "Builds a Nether portal with Delay, Auto-Refill, and Hotbar Cleanup.");
+        super(Genyo.MISC, "auto-portal", "Builds a Nether portal with Delay, Auto-Refill, and Hotbar Cleanup.");
     }
 
     private final List<BlockPos> frameBlocks = new ArrayList<>();

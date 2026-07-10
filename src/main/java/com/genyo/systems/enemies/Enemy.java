@@ -1,7 +1,10 @@
 package com.genyo.systems.enemies;
 
+import com.genyo.Genyo;
 import com.mojang.util.UndashedUuid;
+import meteordevelopment.meteorclient.systems.friends.Friend;
 import meteordevelopment.meteorclient.utils.misc.ISerializable;
+import meteordevelopment.meteorclient.utils.network.FailedHttpResponse;
 import meteordevelopment.meteorclient.utils.network.Http;
 import meteordevelopment.meteorclient.utils.render.PlayerHeadTexture;
 import meteordevelopment.meteorclient.utils.render.PlayerHeadUtils;
@@ -9,6 +12,8 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import java.net.http.HttpResponse;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -18,7 +23,7 @@ public class Enemy implements ISerializable<Enemy>, Comparable<Enemy> {
 
     public volatile String name;
     private volatile @Nullable UUID id;
-    private volatile byte[] headTexture;
+    private volatile @Nullable PlayerHeadTexture headTexture;
     private volatile boolean updating;
 
     public Enemy(String name, @Nullable UUID id) {
@@ -44,16 +49,41 @@ public class Enemy implements ISerializable<Enemy>, Comparable<Enemy> {
     }
 
     public PlayerHeadTexture getHead() {
-        return headTexture != null ? new PlayerHeadTexture(headTexture, false) : PlayerHeadUtils.STEVE_HEAD;
+        return headTexture != null ? headTexture : PlayerHeadUtils.STEVE_HEAD;
     }
 
     public void updateInfo() {
         updating = true;
-        APIResponse res = Http.get("https://api.mojang.com/users/profiles/minecraft/" + name).sendJson(APIResponse.class);
-        if (res == null || res.name == null || res.id == null) return;
-        name = res.name;
-        id = UndashedUuid.fromStringLenient(res.id);
-        mc.execute(() -> headTexture = PlayerHeadUtils.fetchHead(id));
+        HttpResponse<APIResponse> res = null;
+
+        if (id != null) {
+            res = Http.get("https://sessionserver.mojang.com/session/minecraft/profile/" + UndashedUuid.toString(id))
+                .exceptionHandler(ex -> Genyo.LOG.error("Error while trying to connect session server for friend '{}'", name))
+                .sendJsonResponse(APIResponse.class);
+        }
+
+        // Fallback to name-based lookup
+        if (res == null || res.statusCode() != 200) {
+            res = Http.get("https://api.mojang.com/users/profiles/minecraft/" + name)
+                .exceptionHandler(ex -> Genyo.LOG.error("Error while trying to update info for friend '{}'", name))
+                .sendJsonResponse(APIResponse.class);
+        }
+
+        if (res != null && res.statusCode() == 200) {
+            name = res.body().name;
+            id = UndashedUuid.fromStringLenient(res.body().id);
+
+            byte[] head = PlayerHeadUtils.fetchHead(id);
+            mc.execute(() -> {
+                if (head != null) headTexture = new PlayerHeadTexture(head, true);
+            });
+        }
+
+        // cracked accounts shouldn't be assigned ids
+        else if (!(res instanceof FailedHttpResponse)) {
+            id = null;
+        }
+
         updating = false;
     }
 

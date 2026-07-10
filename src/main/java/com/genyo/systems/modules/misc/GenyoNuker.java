@@ -4,6 +4,7 @@ package com.genyo.systems.modules.misc;
 import baritone.api.BaritoneAPI;
 import baritone.api.selection.ISelection;
 import com.genyo.Genyo;
+import com.genyo.systems.modules.GenyoModule;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
 import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.renderer.ShapeMode;
@@ -28,11 +29,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-public class GenyoNuker extends Module {
+public class GenyoNuker extends GenyoModule {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
-    private final SettingGroup sgRender = settings.createGroup("Rendering");
+    private final SettingGroup sgRender = settings.createGroup("Render");
 
-    // 1. Új beállítás a mód kiválasztásához
     public final Setting<Mode> mode = sgGeneral.add(new EnumSetting.Builder<Mode>()
         .name("mode")
         .description("How the nuker determines which area to mine.")
@@ -186,9 +186,8 @@ public class GenyoNuker extends Module {
             }
         }
 
-        blockVecs.sort(Comparator.comparingDouble((pos) -> {
-            return Math.abs(Rotations.getYaw(pos) - mc.player.getYaw()) + Math.abs(Rotations.getPitch(pos) - mc.player.getPitch());
-        }));
+        blockVecs.sort(Comparator.comparingDouble((pos) ->
+            Math.abs(Rotations.getYaw(pos) - mc.player.getYaw()) + Math.abs(Rotations.getPitch(pos) - mc.player.getPitch())));
 
         if (doubleMine.get()) {
             boolean waitingForMineFinish = false;
@@ -278,7 +277,6 @@ public class GenyoNuker extends Module {
         }
     }
 
-    // 3. Metódus ami leellenőrzi a Baritone kijelöléseket
     private boolean isInBaritoneSelection(BlockPos pos) {
         ISelection[] selections = BaritoneAPI.getProvider().getPrimaryBaritone().getSelectionManager().getSelections();
         if (selections.length == 0) return false;
@@ -345,7 +343,6 @@ public class GenyoNuker extends Module {
         }
     }
 
-    // 4. Az Enum a beállításhoz
     public enum Mode {
         Normal,
         BaritoneSelection

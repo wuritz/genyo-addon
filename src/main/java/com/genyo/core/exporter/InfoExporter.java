@@ -4,6 +4,7 @@ import com.genyo.Genyo;
 import com.genyo.core.exporter.records.ExHUD;
 import com.genyo.core.exporter.records.ExModule;
 import com.genyo.core.exporter.records.ExSystem;
+import com.genyo.utils.string.StringUtils;
 import meteordevelopment.meteorclient.systems.hud.HudElementInfo;
 import meteordevelopment.meteorclient.systems.modules.Category;
 import meteordevelopment.meteorclient.systems.modules.Module;
@@ -33,6 +34,8 @@ public class InfoExporter {
         if (categories.isEmpty()) {
             return;
         }
+
+        //asd
 
         // Modules
         for (String category : categories) {
@@ -95,7 +98,10 @@ public class InfoExporter {
         for (ExModule module : modules) {
             Map<String, Object> map = new LinkedHashMap<>();
 
+
+
             map.put("name", module.name());
+            map.put("idForSEO", StringUtils.titleToName(module.name()));
             map.put("description", module.description());
             map.put("category", module.category().label);
 

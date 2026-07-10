@@ -133,51 +133,6 @@ public class GenyoModule extends Module {
         sequence.close();
     }
 
-    /*public void placeBlock(Hand hand, Vec3d blockHitVec, Direction blockDirection, BlockPos pos) {
-        Vec3d eyes = mc.player.getEyePos();
-        boolean inside =
-            eyes.x > pos.getX() && eyes.x < pos.getX() + 1 &&
-                eyes.y > pos.getY() && eyes.y < pos.getY() + 1 &&
-                eyes.z > pos.getZ() && eyes.z < pos.getZ() + 1;
-
-        //SettingUtils.swing(SwingState.Pre, SwingType.Placing, hand);
-        mc.player.swingHand(hand);
-        sendSequenced(s -> new PlayerInteractBlockC2SPacket(hand, new BlockHitResult(blockHitVec, blockDirection, pos, inside), s));
-        //SettingUtils.swing(SwingState.Post, SwingType.Placing, hand);
-    }
-
-    public void interactBlock(Hand hand, Vec3d blockHitVec, Direction blockDirection, BlockPos pos) {
-        Vec3d eyes = mc.player.getEyePos();
-        boolean inside =
-            eyes.x > pos.getX() && eyes.x < pos.getX() + 1 &&
-                eyes.y > pos.getY() && eyes.y < pos.getY() + 1 &&
-                eyes.z > pos.getZ() && eyes.z < pos.getZ() + 1;
-
-        //SettingUtils.swing(SwingState.Pre, SwingType.Interact, hand);
-        mc.player.swingHand(hand);
-        sendSequenced(s -> new PlayerInteractBlockC2SPacket(hand, new BlockHitResult(blockHitVec, blockDirection, pos, inside), s));
-        //SettingUtils.swing(SwingState.Post, SwingType.Interact, hand);
-    }
-
-    public void useItem(Hand hand) {
-        //SettingUtils.swing(SwingState.Pre, SwingType.Using, hand);
-        mc.player.swingHand(hand);
-        float tickDelta = mc.getRenderTickCounter().getTickDelta(true);
-        sendSequenced(s -> new PlayerInteractItemC2SPacket(hand, s, mc.player.getYaw(tickDelta), mc.player.getPitch(tickDelta)));
-        //SettingUtils.swing(SwingState.Post, SwingType.Using, hand);
-    }
-
-    public void clientSwing(SwingHand swingHand, Hand realHand) {
-        Hand hand = switch (swingHand) {
-            case MainHand -> Hand.MAIN_HAND;
-            case OffHand -> Hand.OFF_HAND;
-            case RealHand -> realHand;
-        };
-
-        mc.player.swingHand(hand, true);
-        Modules.get().get(SwingModifier.class).startSwing(hand);
-    }*/
-
     public Setting<Boolean> addPauseEat(SettingGroup group) {
         return group.add(new BoolSetting.Builder()
             .name("Pause Eat")

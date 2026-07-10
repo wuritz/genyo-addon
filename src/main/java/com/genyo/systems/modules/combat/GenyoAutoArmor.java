@@ -5,10 +5,7 @@ import com.genyo.events.network.PlayerTickEvent;
 import com.genyo.managers.Managers;
 import com.genyo.systems.modules.GenyoModule;
 import com.genyo.systems.settings.FloatSetting;
-import meteordevelopment.meteorclient.settings.BoolSetting;
-import meteordevelopment.meteorclient.settings.EnumSetting;
-import meteordevelopment.meteorclient.settings.Setting;
-import meteordevelopment.meteorclient.settings.SettingGroup;
+import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.component.DataComponentTypes;
@@ -40,12 +37,12 @@ public class GenyoAutoArmor extends GenyoModule {
         .build()
     );
 
-    private final Setting<Float> minDurabilityConfig = sgGeneral.add(new FloatSetting.Builder()
+    private final Setting<Double> minDurabilityConfig = sgGeneral.add(new DoubleSetting.Builder()
         .name("Min Durability")
         .description("Durability percent to replace armor")
-        .min(0.0f)
-        .defaultValue(0.0f)
-        .max(20.0f)
+        .min(0.0d)
+        .defaultValue(0.0d)
+        .max(20.0d)
         .build()
     );
 
