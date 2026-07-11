@@ -57,23 +57,17 @@ public final class Core {
         GenyoConfig cfg = GenyoConfig.get();
         if (cfg == null) return;
 
-        if (message.contains("genyo") && !message.startsWith("§")) {
-            if (cfg.vineSound.get()) {
-                Managers.SOUND.playSound(VINE, cfg.vineVolume.get());
-            }
-        } else if (message.contains("verstappen")) {
-            if (cfg.verstappenSound.get()) {
-                Managers.SOUND.playSound(VERSTAPPEN, cfg.verstappenVolume.get());
-            }
-        } else if ((message.contains("nigga") || message.contains("nigger")) && cfg.blackPerson.get()) {
+        if (message.contains("genyo") && !message.startsWith("§") && cfg.vineSound.get()) {              // genyo
+            Managers.SOUND.playSound(VINE, cfg.vineVolume.get());
+        } else if (message.contains("verstappen") && cfg.verstappenSound.get()) {                        // verstappen
+            Managers.SOUND.playSound(VERSTAPPEN, cfg.verstappenVolume.get());
+        } else if ((message.contains("nigga") || message.contains("nigger")) && cfg.blackPerson.get()) { // n
             if (soundTimer.passed(6000)) {
                 Managers.SOUND.playSound(BLACK, 10);
                 soundTimer.reset();
             }
-        } else if (message.contains("kiwi")) {
-            if (cfg.kiwiSound.get()) {
-                Managers.SOUND.playSound(KIWI, cfg.kiwiVolume.get());
-            }
+        } else if (message.contains("kiwi") && cfg.kiwiSound.get()) {                                    // kiwi
+            Managers.SOUND.playSound(KIWI, cfg.kiwiVolume.get());
         }
     }
 

@@ -2,6 +2,7 @@ package com.genyo.systems.modules.visual;
 
 import com.genyo.Genyo;
 import com.genyo.render.animation.Animation;
+import com.genyo.systems.modules.GenyoModule;
 import meteordevelopment.meteorclient.events.packets.PacketEvent;
 import meteordevelopment.meteorclient.events.render.Render2DEvent;
 import meteordevelopment.meteorclient.events.render.Render3DEvent;
@@ -27,7 +28,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class GenyoLogoutPoints extends Module {
+public class GenyoLogoutPoints extends GenyoModule {
 
     private static final DecimalFormat DECIMAL = new DecimalFormat("#.#");
 

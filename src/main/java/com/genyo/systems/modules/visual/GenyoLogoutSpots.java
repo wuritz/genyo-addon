@@ -1,9 +1,11 @@
 package com.genyo.systems.modules.visual;
 
 
+import com.genyo.Genyo;
 import com.genyo.render.FrozenPlayerRenderState;
 import com.genyo.render.PlayerWireframeRenderer;
 import com.genyo.render.RenderStateCache;
+import com.genyo.systems.modules.GenyoModule;
 import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.entity.player.PlayerSkinType;
 import meteordevelopment.meteorclient.events.render.Render2DEvent;
@@ -30,7 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class GenyoLogoutSpots extends Module {
+public class GenyoLogoutSpots extends GenyoModule {
+
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
     private final SettingGroup sgRender = settings.createGroup("Render");
 
@@ -102,7 +105,7 @@ public class GenyoLogoutSpots extends Module {
     private DimensionType lastDimension;
 
     public GenyoLogoutSpots() {
-        super(Categories.Render, "genyo-logout-spots", "Freezes an exact wireframe of a player at the moment they log out.");
+        super(Genyo.VISUAL, "genyo-logout-spots", "Freezes an exact wireframe of a player at the moment they log out.");
     }
 
     @Override

@@ -31,7 +31,6 @@ public class MineESP extends GenyoModule {
     }
 
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
-    private final SettingGroup sgColors = settings.createGroup("Colors");
     private final SettingGroup sgRender = settings.createGroup("Render");
 
     private final Setting<Double> radius = sgGeneral.add(new DoubleSetting.Builder()
@@ -59,7 +58,7 @@ public class MineESP extends GenyoModule {
 
     private final Setting<Boolean> showOwnMining = sgGeneral.add(new BoolSetting.Builder()
         .name("show-own-mining")
-        .description("Az ESP a saját bányászásunkat is mutassa.")
+        .description("ESP shows your own mining too.")
         .defaultValue(false)
         .build()
     );
@@ -86,14 +85,14 @@ public class MineESP extends GenyoModule {
         .build()
     );
 
-    private final Setting<SettingColor> doubleMineSideColor = sgColors.add(new ColorSetting.Builder()
+    private final Setting<SettingColor> doubleMineSideColor = sgRender.add(new ColorSetting.Builder()
         .name("double-mine-side-color")
-        .description("A doboz színe, ha a játékos egyszerre több blokkot bányászik.")
+        .description("Side color.")
         .defaultValue(new SettingColor(255, 165, 0, 100))
         .build()
     );
 
-    private final Setting<SettingColor> doubleMineLineColor = sgColors.add(new ColorSetting.Builder()
+    private final Setting<SettingColor> doubleMineLineColor = sgRender.add(new ColorSetting.Builder()
         .name("double-mine-line-color")
         .defaultValue(new SettingColor(255, 165, 0, 255))
         .build()
