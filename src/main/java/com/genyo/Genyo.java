@@ -150,8 +150,6 @@ public class Genyo extends MeteorAddon {
         modules.add(new GenyoNoMineAnimation());
         modules.add(new GenyoAutoPortal());
         modules.add(new MineESP());
-        modules.add(new GenyoAutoPortal());
-        modules.add(new MineESP());
         modules.add(new GenyoNuker());
         modules.add(new NoSwing());
         modules.add(new GenyoSurround());
