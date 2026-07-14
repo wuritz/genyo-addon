@@ -9,7 +9,7 @@
 
 <div align="center">
     <a href="https://github.com/wuritz/genyo-addon/releases">
-        <img src="https://img.shields.io/github/v/tag/wuritz/genyo-addon?label=current&style=flat">
+        <img src="https://img.shields.io/github/v/tag/wuritz/genyo-addon?label=latest&style=flat">
     </a>
 
 <a href="https://discord.gg/dwuAuXKQ">
@@ -32,28 +32,47 @@ You don't need anything more, we have everything you've ever wanted. Also things
 
 International version: **Genyo Addon**<br>
 *written for **Meteor 1.21.11***<br>
-Thank you [Sleeepyv](https://github.com/Sleeepyv) for updating Genyo.
+Thank you [Awakeyv](https://github.com/Sleeepyv) for updating Genyo.
 
 ## Features ✨
 
-📋 Check out the [full list of modules](https://genyo.dev/#modules) on our website. 📋
+Over 70+ modules divided to 6 categories, mainly focusing on anarchy PvP. <br />
 
-## Problem?
+| Category | Modules |
+|----------|:-------:|
+| Combat   |   14+   |
+| Movement |   4+    |
+| Visual   |   6+    |
+| World    |   13+   |
+| Misc     |   16+   |
+| HUD      |   8+    |
 
-[Join Discord](https://discord.gg/dwuAuXKQ) for support. <br />
+
+Check out the [full list of modules](https://genyo.dev/#modules) and their descriptions on our website. 📋
+
+
+## How to install
+1. Get the latest `.jar` file under the Releases page, or on [the website](https://genyo.dev/download)
+2. Locate your `mods` folder
+3. Make sure you're using **Minecraft 1.21.11** and have the **Fabric API & Meteor** installed
+4. Drop the `genyo-addon-{version}.jar` file into the folder
+5. +5 cm
+
+## Problem / Suggestion?
+
+[Open an issue](https://github.com/wuritz/genyo-addon/issues/new/choose) or [join the Discord](https://genyo.dev/discord) for support. <br />
 *⚠️ keep in mind that we aren't developing this thing 24/7 ⚠️*
 
-## License
+### Credits
 
-[YOLO License](https://github.com/wuritz/genyo-addon/blob/master/LICENSE) - i guess
+Thanks to:
+    
+- meteor for being awesome
+- Credit to *"John Genyo"*, the founder of <Genyo Corporations
+- also [Shoreline](https://github.com/Skitttyy/shoreline-client) for being shorelineistic
+- [Awakeyv](https://github.com/Sleeepyv) for updating to 1.21.11
+- and other clients lol
 
-## Credits
+### License
 
-<dl>
-    <dt>Thanks to:</dt>
-    <dd> - meteor for being awesome</dd>
-    <dd> - Credit to <strong>"John Genyo"</strong>, the founder of <em>Genyo Corporations</em></dd>
-    <dd> - also <a href="https://github.com/Skitttyy/shoreline-client">Shoreline</a> for being shorelineistic</dd>
-    <dd> - <a href="https://github.com/Sleeepyv">Sleeepyv</a> for updating to 1.21.11</dd>
-    <dd> - and other clients lol</dd>
-</dl>
+[YOLO License](https://github.com/wuritz/genyo-addon/blob/master/LICENSE)
