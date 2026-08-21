@@ -203,6 +203,7 @@ public class Genyo extends MeteorAddon {
         modules.add(new Parkinsons());
         modules.add(new GyattESP());
         modules.add(new AutoAnchor());
+        modules.add(new Blinker());
     }
 
     private void initHUD(Hud hud) {
